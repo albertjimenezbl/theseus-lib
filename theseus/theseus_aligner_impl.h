@@ -24,13 +24,15 @@ private:
     // template <Penalties::Type gap_type>
     void backtrace(Alignment& alignment);
 
-    bool is_msa;
-    bool is_score_only;
-
-    Graph _graph; // TODO:
+    int32_t _score;
 
     Penalties _orig_penalties;
     InternalPenalties _penalties;
+
+    Graph _graph; // TODO:
+
+    bool _is_msa;
+    bool _is_score_only;
 
     std::unique_ptr<ScratchPad> _scratchpad; // TODO: Scratchpad inside scope?
 

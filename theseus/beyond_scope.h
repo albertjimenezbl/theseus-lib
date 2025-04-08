@@ -1,9 +1,14 @@
 #pragma once
 
+#include <vector>
+#include "cell.h"
+
 /**
  * TODO:
  *
  */
+
+namespace theseus {
 
 class BeyondScope {
 public:
@@ -14,33 +19,48 @@ public:
     // TODO:
     BeyondScope() {
         constexpr int expected_nscores = 1024;
-        _sdata.realloc(expected_nscores);
+        _sdata.reserve(expected_nscores);
     }
 
     // TODO:
     void new_score() {
         if (_sdata.size() == _sdata.capacity()) {
-            _sdata.realloc(_sdata.capacity() * 2);
+            _sdata.reserve(_sdata.capacity() * 2);
         }
         _sdata.resize(_sdata.size() + 1);
     }
 
     // TODO:
-    ManualCapacityVector<Cell> &m_wf(int score) {
+    std::vector<Cell> &m_wf(int score) {
         return _sdata[score]._m_wf;
     }
 
     // TODO:
-    ManualCapacityVector<Cell> &_i_jumps(int score) {
+    std::vector<Cell> &m_jumps(int score) {
+        return _sdata[score]._m_jumps;
+    }
+
+    // TODO:
+    std::vector<Cell> &i_jumps(int score) {
         return _sdata[score]._i_jumps;
     }
+
+    // TODO:
+    std::vector<Cell> &i2_jumps(int score) {
+        return _sdata[score]._i2_jumps;
+    }
+
 private:
     struct ScoreData {
-        ManualCapacityVector<Cell> _m_wf;
+        std::vector<Cell> _m_wf;
 
-        ManualCapacityVector<Cell> _i_jumps;
-        ManualCapacityVector<Cell> _i2_jumps;
+        std::vector<Cell> _m_jumps;
+
+        std::vector<Cell> _i_jumps;
+        std::vector<Cell> _i2_jumps;
     };
 
-    ManualCapacityVector<ScoreData> _sdata;
+    std::vector<ScoreData> _sdata;
 };
+
+} // namespace theseus

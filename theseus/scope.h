@@ -2,6 +2,8 @@
 
 #include <manual_capacity_vector.h>
 #include <cell.h>
+#include <vector>
+#include "circular_queue.h"
 
 /**
  * TODO:
@@ -9,6 +11,8 @@
  */
 
 // TODO: Create cpp.
+
+namespace theseus {
 
 class Scope {
 public:
@@ -19,63 +23,114 @@ public:
 
     // TODO:
     Scope(int nscores)
-        : nscores(nscores),
-          front_idx(0),
-          front_score(0),
-          _sdata(nscores) {
+        : _squeue(nscores) {
 
-        // for (int i = 0; i < nscores; i++) {
-        //     _iwfs[i].reserve(1000);
-        //     _dwfs[i].reserve(1000);
-        //     _i2wfs[i].reserve(1000);
-        //     _d2wfs[i].reserve(1000);
-        //     _mjumps[i].reserve(1000);
-        //     _mjumps_pos[i].reserve(1000);
-        //     _ijumps_pos[i].reserve(1000);
-        //     _i2jumps_pos[i].reserve(1000);
-        // }
+        for (int i = 0; i < nscores; i++) {
+            _squeue[i].reserve(1024);
+        }
     }
 
     // TODO:
     void new_alignment() {
-        front_idx = 0;
-        front_score = 0;
+        _squeue.reset();
+        for (int score = 0; score < _squeue.nscores(); ++score) {
+            _squeue[score].resize(0);
+        }
     }
 
     // TODO:
     void new_score() {
-        front_idx = (front_idx + 1) % nscores;
-        front_score++;
+        _squeue.new_score();
+        _squeue[_squeue.score()].resize(0);
     }
 
     // TODO:
-    ManualCapacityVector<Cell> &i_wf(int score) {
-        return _sdata[score_to_idx(score)]._i_wf;
+    std::vector<Cell> &i_wf(int score) {
+        return _squeue[score]._i_wf;
+    }
+
+    // TODO:
+    std::vector<Cell> &d_wf(int score) {
+        return _squeue[score]._d_wf;
+    }
+
+    // TODO:
+    std::vector<Cell> &i2_wf(int score) {
+        return _squeue[score]._i2_wf;
+    }
+
+    // TODO:
+    std::vector<Cell> &d2_wf(int score) {
+        return _squeue[score]._d2_wf;
+    }
+
+    // TODO:
+    std::vector<int32_t> &m_pos(int score) {
+        return _squeue[score]._m_pos;
+    }
+
+    // TODO:
+    std::vector<int32_t> &i_pos(int score) {
+        return _squeue[score]._i_pos;
+    }
+
+    // TODO:
+    std::vector<int32_t> &i2_pos(int score) {
+        return _squeue[score]._i2_pos;
+    }
+
+    // TODO:
+    std::vector<int32_t> &d_pos(int score) {
+        return _squeue[score]._d_pos;
+    }
+
+    // TODO:
+    std::vector<int32_t> &d2_pos(int score) {
+        return _squeue[score]._d2_pos;
     }
 
 private:
-    // TODO:
-    int score_to_idx(int score) {
-        return (front_idx + score - front_score) % nscores;
-    }
-
-    int nscores;
-    int front_idx;
-    int front_score;
-
     struct ScoreData {
-        ManualCapacityVector<Cell> _i_wf;
-        ManualCapacityVector<Cell> _d_wf;
+        std::vector<Cell> _i_wf;
+        std::vector<Cell> _d_wf;
 
-        ManualCapacityVector<Cell> _i2_wf;
-        ManualCapacityVector<Cell> _d2_wf;
+        std::vector<Cell> _i2_wf;
+        std::vector<Cell> _d2_wf;
 
-        ManualCapacityVector<Cell> _m_jumps;
+        std::vector<int32_t> _m_pos;
 
-        ManualCapacityVector<int32_t> _m_jumps_pos;
-        ManualCapacityVector<int32_t> _i_jumps_pos;
-        ManualCapacityVector<int32_t> _i2_jumps_pos;
+        std::vector<int32_t> _i_pos;
+        std::vector<int32_t> _i2_pos;
+
+        std::vector<int32_t> _d_pos;
+        std::vector<int32_t> _d2_pos;
+
+        void reserve(int new_capacity) {
+            _i_wf.reserve(new_capacity);
+            _d_wf.reserve(new_capacity);
+            _i2_wf.reserve(new_capacity);
+            _d2_wf.reserve(new_capacity);
+            _m_pos.reserve(new_capacity);
+            _i_pos.reserve(new_capacity);
+            _i2_pos.reserve(new_capacity);
+            _d_pos.reserve(new_capacity);
+            _d2_pos.reserve(new_capacity);
+        }
+
+        void resize(int new_size) {
+            _i_wf.resize(new_size);
+            _d_wf.resize(new_size);
+            _i2_wf.resize(new_size);
+            _d2_wf.resize(new_size);
+            _m_pos.resize(new_size);
+            _i_pos.resize(new_size);
+            _i2_pos.resize(new_size);
+            _d_pos.resize(new_size);
+            _d2_pos.resize(new_size);
+        }
     };
 
-    ManualCapacityVector<ScoreData> _sdata;
+    ScoreCircularQueue<ScoreData> _squeue;
 };
+
+} // namespace theseus

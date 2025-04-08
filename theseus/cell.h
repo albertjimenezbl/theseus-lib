@@ -15,13 +15,24 @@ namespace theseus {
 // trivial. This way, resizes of ManualCapacityVector<Cell> are free.
 struct Cell {
     using vertex_t = int32_t; // TODO: This should be here?
-    using offset_t = int32_t;
-    using diag_t = int32_t;
+    using idx2d_t = int32_t;
+    using pos_t = int32_t;
+    using score_t = int32_t;
 
-    Cell *prev;
+    enum class FromMatrix : int8_t {
+        None,
+        M,
+        MJump,
+        IJump,
+        I2Jump
+    };
+
     vertex_t vertex_id;
-    offset_t offset;
-    diag_t diag;
+    idx2d_t offset;
+    idx2d_t diag;
+    pos_t prev_pos;
+    score_t score_diff;
+    FromMatrix from_matrix;
 };
 
 }   // namespace theseus
