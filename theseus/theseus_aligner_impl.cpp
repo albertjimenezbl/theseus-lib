@@ -1,17 +1,18 @@
 #include "theseus_aligner_impl.h"
 
+namespace theseus {
+
 TheseusAlignerImpl::TheseusAlignerImpl(Penalties &penalties,
                                        Graph &graph,
                                        bool msa,
                                        bool _score_only) : _orig_penalties(penalties),
-                                                          _penalties(penalties),
                                                           _graph(graph),
                                                           _is_msa(msa),
                                                           _is_score_only(_score_only) {
-    // TODO: Gap-linear and gap-affine.
-    const auto n_scores = std::max({_penalties.gapo() + _penalties.ins(),
-                                   _penalties.gapo() + _penalties.del(),
-                                   _penalties.mismatch()}) + 1;
+    // TODO: Gap-linear, gap-affine and dual affine-gap.
+    const auto n_scores = std::max({penalties.gapo() + penalties.gape(),
+                                   penalties.gapo() + penalties.gape(),
+                                   penalties.mism()}) + 1;
 
     _scope = std::make_unique<Scope>(n_scores);
     _beyond_scope = std::make_unique<BeyondScope>();
@@ -21,7 +22,7 @@ TheseusAlignerImpl::TheseusAlignerImpl(Penalties &penalties,
     _scratchpad = std::make_unique<ScratchPad>(-1024, 1024);
 }
 
-void new_alignment(int start_vtx) {
+void TheseusAlignerImpl::new_alignment(int start_vtx) {
     // TODO: Avoid recomputing the max_diag if possible.
     int max_diag = 0, v_n;
     for (int l = 0; l < _graph._vertices.size(); ++l) {
@@ -49,19 +50,19 @@ void new_alignment(int start_vtx) {
     init_condition.diagonal = 0;
     init_condition._score_diff = 0;
     // Initial vertex data
-    _beyond_scope[_score]._m_jumps_data.push_back(init_condition);
-    activate_vertex(start_vtx);
+    _beyond_scope->m_jumps(score).push_back(init_condition);
+    _vertices_data->activate_vertex(start_vtx);
     _active_vertices[0]._m_jumps_positions[0].push_back(0);
 }
 
 
 // Process a given vertex with a given _score
-void process_vertex(Graph::vertex* curr_v,
-                    int v) {
+void TheseusAlignerImpl::process_vertex(Graph::vertex* curr_v,
+                                        int v) {
 
   // Perform the next operation
   int upper_bound = curr_v->value.size();
-  next_I(curr_v, upper_bound, v, end_vertex);
+  next_I(curr_v, upper_bound, v);
   _scratchpad.scratch_pad->reset();
   next_D(curr_v, upper_bound, v);
   _scratchpad.scratch_pad->reset();
@@ -78,7 +79,7 @@ void process_vertex(Graph::vertex* curr_v,
 }
 
 
-void compute_new_wave() {
+void TheseusAlignerImpl::compute_new_wave() {
 
   // Update invalid segments
   _vertices_data->expand();
@@ -94,7 +95,7 @@ void compute_new_wave() {
 }
 
 
-TheseusAlignerImpl::Alignment align(std::string_view seq) {
+Alignment TheseusAlignerImpl::align(std::string_view seq) {
     _scope->new_alignment();
     _beyond_scope->new_alignment();
     _vertices_data->new_alignment();
@@ -121,10 +122,8 @@ TheseusAlignerImpl::Alignment align(std::string_view seq) {
         _vertices_data->new_score();
     }
 
-}
-
 // Sparsify M data
-void sparsify_M_data(Graph::vertex *curr_v,
+void TheseusAlignerImpl::sparsify_M_data(Graph::vertex *curr_v,
                     wavefront &dense_wf,
                     int offset_increase,
                     int shift_factor,
@@ -163,7 +162,7 @@ void sparsify_M_data(Graph::vertex *curr_v,
 
 
 // Sparsify jumps data
-void sparsify_jumps_data(Graph::vertex *curr_v,
+void TheseusAlignerImpl::sparsify_jumps_data(Graph::vertex *curr_v,
                         wavefront &dense_wf,
                         std::vector<int> &jumps_positions,
                         int offset_increase,
@@ -203,7 +202,7 @@ void sparsify_jumps_data(Graph::vertex *curr_v,
 
 
 // Sparsify indel
-void sparsify_indel_data(Graph::vertex *curr_v,
+void TheseusAlignerImpl::sparsify_indel_data(Graph::vertex *curr_v,
                         wavefront &dense_wf,
                         int offset_increase,
                         int shift_factor,
@@ -241,12 +240,9 @@ void sparsify_indel_data(Graph::vertex *curr_v,
 
 
 // Compute next I matrix
-void next_I(Graph::vertex* curr_v,
+void TheseusAlignerImpl::next_I(Graph::vertex* curr_v,
             int upper_bound,
-            int v,
-            int end_vertex,
-            bool &end,
-            Cell &start_pos) {
+            int v) {
 
     // Sparsify data (put it in the scratch pad)
     int pos_prev_M = _score - (_penalties.gapo() + _penalties.ins()), pos_prev_I = _score - penalties.ins(), start_idx, end_idx;
@@ -288,7 +284,7 @@ void next_I(Graph::vertex* curr_v,
 
 
 // Compute next D matrix
-void next_D(vertex* curr_v,
+void TheseusAlignerImpl::next_D(vertex* curr_v,
             int upper_bound,
             int v) {
 
@@ -324,10 +320,9 @@ void next_D(vertex* curr_v,
 
 
 // Compute next M matrix
-void next_M(
-    Graph::vertex* curr_v,
-    int upper_bound,
-    int v) {
+void TheseusAlignerImpl::next_M(Graph::vertex* curr_v,
+                                int upper_bound,
+                                int v) {
 
   // Sparsify data (put it in the scratch pad)
   int pos_prev_M = _score - _penalties.subs(), pos_prev_D = _score, pos_prev_I = _score, start_idx, end_idx;
@@ -370,11 +365,11 @@ void next_M(
 
 
 // Store the jump in neighbours
-void store_M_jump(Graph::vertex* curr_v,
-                  Cell &prev_cell,
-                  int prev_pos,
-                  char prev_matrix,
-                  int _score_diff) {
+void TheseusAlignerImpl::store_M_jump(Graph::vertex* curr_v,
+                                      Cell &prev_cell,
+                                      int prev_pos,
+                                      char prev_matrix,
+                                      int _score_diff) {
 
   // Invalidate the jumping diagonal
   invalidate_M_jump(prev_cell.diagonal, data.vertices_data[curr_v->pos]);
@@ -404,10 +399,10 @@ void store_M_jump(Graph::vertex* curr_v,
 
 
 // Store the jump in neighbours
-void store_I_jump(Graph::vertex* curr_v,
-                  Cell& prev_cell,
-                  int prev_pos,
-                  char prev_matrix) {
+void TheseusAlignerImpl::store_I_jump(Graph::vertex* curr_v,
+                                      Cell& prev_cell,
+                                      int prev_pos,
+                                      char prev_matrix) {
 
   // Invalidate the jumping diagonal
   invalidate_I_jump(prev_cell.diagonal, data.vertices_data[curr_v->pos]);
@@ -435,7 +430,7 @@ void store_I_jump(Graph::vertex* curr_v,
 
 
 // Check and store I jumps (that is, those diagonals that have reached the last column of a vertex)
-void check_and_store_jumps(Graph::vertex* curr_v,
+void TheseusAlignerImpl::check_and_store_jumps(Graph::vertex* curr_v,
                           std::vector<Cell> &curr_wavefront,
                           int start_idx,
                           int end_idx,
@@ -459,23 +454,23 @@ void check_and_store_jumps(Graph::vertex* curr_v,
 
 
 // Compute the Longest Common Prefix between two given sequences
-void LCP(std::string &seq_1,
-        std::string &seq_2,
-        int len_seq_1,
-        int len_seq_2,
-        int &offset, // pointer to the offset (row value) at the current diagonal
-        int &j) {
+void TheseusAlignerImpl::LCP(std::string &seq_1,
+                             std::string &seq_2,
+                             int len_seq_1,
+                             int len_seq_2,
+                             int &offset,   // pointer to the offset (row value)
+                                            // at the current diagonal
+                             int &j) {
 
-  // Find LCP
-  while (offset < len_seq_1 && j < len_seq_2 && seq_1[offset] == seq_2[j]) {
-    offset = offset + 1; // Update the f.r. of this diagonal
-    j = j + 1;
-  }
+    // Find LCP
+    while (offset < len_seq_1 && j < len_seq_2 && seq_1[offset] == seq_2[j]) {
+        offset = offset + 1;   // Update the f.r. of this diagonal
+        j = j + 1;
+    }
 }
 
-
 // TODO: Implement different end conditions as Global, Semi-Global...
-void check_end_condition(Cell curr_data, // Offset and prev_index
+void TheseusAlignerImpl::check_end_condition(Cell curr_data, // Offset and prev_index
                         int j,
                         int v) {
 
@@ -488,7 +483,7 @@ void check_end_condition(Cell curr_data, // Offset and prev_index
 
 
 // Extend a particular diagonal
-void extend_diagonal(
+void TheseusAlignerImpl::extend_diagonal(
     Graph::vertex *curr_v,
     Cell &curr_cell,
     int v,
@@ -514,8 +509,8 @@ void extend_diagonal(
 
 
 // Add matches to our backtracking vector
-void add_matches(
-    backtrack_seq &back,
+void TheseusAlignerImpl::add_matches(
+    Cigar &back,
     int start_matches,
     int end_matches) {
 
@@ -529,8 +524,8 @@ void add_matches(
 
 
 // Add a mismatch to our backtracking vector
-void add_mismatch(
-    backtrack_seq &back,
+void TheseusAlignerImpl::add_mismatch(
+    Cigar &back,
     Cell curr_pos) {
 
   int j = curr_pos.offset + curr_pos.diagonal - 1;
@@ -541,7 +536,7 @@ void add_mismatch(
 
 
 // Add an insertion to our backtracking vector
-void add_insertion(
+void TheseusAlignerImpl::add_insertion(
     Cigar &back,
     Cell &curr_pos) {
 
@@ -553,13 +548,13 @@ void add_insertion(
 
 
 // Add a deletion to our backtracking vector
-void add_deletion(backtrack_seq &back) {
+void TheseusAlignerImpl::add_deletion(Cigar &back) {
 
   back.edit_op.push_back('D');
 }
 
 
-void one_backtrace_step(
+void TheseusAlignerImpl::one_backtrace_step(
     Cell &curr_cell,
     Cigar &back,
     Graph::vertex *curr_v) {
@@ -606,25 +601,26 @@ void one_backtrace_step(
 
 
 // Main function of the backtracking process
-void backtrace(
-    Cigar &back,
-    Cell &start_pos,
-    int initial_vertex) {
+void TheseusAlignerImpl::backtrace(Cigar &back, Cell &start_pos, int initial_vertex) {
 
-  Cell curr_pos = start_pos;
-  Graph::vertex *curr_v = &_graph._vertices[start_pos.vertex_id];
-  back.path.push_back(curr_pos.vertex_id); // Guardo l'últim node?
-  while (curr_pos.vertex_id != initial_vertex) {
-    curr_v = &_graph._vertices[curr_pos.vertex_id];
-    one_backtrace_step(curr_pos, back, curr_v);
-  }
+    Cell curr_pos = start_pos;
+    Graph::vertex *curr_v = &_graph._vertices[start_pos.vertex_id];
+    back.path.push_back(curr_pos.vertex_id);   // Guardo l'últim node?
+    while (curr_pos.vertex_id != initial_vertex) {
+        curr_v = &_graph._vertices[curr_pos.vertex_id];
+        one_backtrace_step(curr_pos, back, curr_v);
+    }
 
-  int remaining_deletions = curr_pos.offset;
-  for (int l = 0; l < remaining_deletions; ++l) { // If the alignment started with some deletions, add them
-    back.edit_op.push_back('D');
-  }
+    int remaining_deletions = curr_pos.offset;
+    for (int l = 0; l < remaining_deletions; ++l) {   // If the alignment
+                                                      // started with some
+                                                      // deletions, add them
+        back.edit_op.push_back('D');
+    }
 
-  std::reverse(back.edit_op.begin(), back.edit_op.end());
-  std::reverse(back.rec_seq.begin(), back.rec_seq.end());
-  std::reverse(back.path.begin(), back.path.end());
+    std::reverse(back.edit_op.begin(), back.edit_op.end());
+    std::reverse(back.rec_seq.begin(), back.rec_seq.end());
+    std::reverse(back.path.begin(), back.path.end());
 }
+
+} // namespace theseus

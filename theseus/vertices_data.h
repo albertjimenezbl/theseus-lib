@@ -6,7 +6,7 @@
 
 #include "cell.h"
 #include "circular_queue.h"
-#include "internal_penalties.h"
+#include "theseus/penalties.h"
 
 /**
  * TODO:
@@ -31,18 +31,38 @@ public:
     };
 
     // TODO:
-    VerticesData(InternalPenalties &penalties, int nscores, int nexpected_vertices)
-        : _penalties(penalties), _jumps_pos(nscores) {
-
+    VerticesData(Penalties &penalties, int nscores, int nexpected_vertices) :
+        _penalties(penalties), _nscores(nscores) {
         _active_vertices.reserve(nexpected_vertices);
-
-        for (int s = 0; s < _jumps_pos.nscores(); ++s) {
-            auto &sjpos = _jumps_pos[s];
-            sjpos._m_jumps_positions.reserve(nexpected_vertices);
-            sjpos._i_jumps_positions.reserve(nexpected_vertices);
-        }
+        _vertex_to_idx.reserve(nexpected_vertices);
     }
 
+private:
+    Penalties &_penalties;
+    int _nscores;
+
+    struct VertexData {
+        Cell::vertex_t vertex_id;
+
+        std::vector<InvalidData> _m_invalid;
+
+        std::vector<InvalidData> _i_invalid;
+        std::vector<InvalidData> _i2_invalid;
+
+        std::vector<InvalidData> _d_invalid;
+        std::vector<InvalidData> _d2_invalid;
+
+        // Scope with the positions of M jumps in the scope previous waves
+        std::vector<std::vector<int32_t>> _m_jumps_positions;
+
+        // Scope with the positions of I jumps in the scope previous waves
+        std::vector<std::vector<int32_t>> _i_jumps_positions;
+    };
+
+    std::vector<VertexData> _active_vertices;
+    std::vector<Cell::vertex_t> _vertex_to_idx;
+
+    // FUNCTIONS
     // TODO: Compact the invalid vectors.
     void compact_invalid_vector(std::vector<InvalidData> &invalid_v,
                                 int default_rem_up,
@@ -122,11 +142,11 @@ public:
     void expand() {
         for (int l = 0; l < _active_vertices.size(); ++l) {
             auto &vdata = _active_vertices[l];
-            expand_invalid_vector(vdata._m_invalid, TODO, TODO);
-            expand_invalid_vector(vdata._i_invalid, TODO, TODO);
+            expand_invalid_vector(vdata._m_invalid, _penalties.gape(), _penalties.gape());
+            expand_invalid_vector(vdata._i_invalid, _penalties.gape(), _penalties.gape());
             // TODO:
             // expand_invalid_vector(vdata._i2_invalid, TODO, TODO);
-            expand_invalid_vector(vdata._d_invalid, TODO, TODO);
+            expand_invalid_vector(vdata._d_invalid, _penalties.gape(), _penalties.gape());
             // TODO:
             // expand_invalid_vector(vdata._d2_invalid, TODO, TODO);
         }
@@ -135,12 +155,18 @@ public:
     // TODO: Compact the invalid vectors.
     void compact() {
         for (int l = 0; l < _active_vertices.size(); ++l) {
-            compact_invalid_vector(_active_vertices[l]._m_invalid, TODO, TODO);
-            compact_invalid_vector(_active_vertices[l]._i_invalid, TODO, TODO);
+            compact_invalid_vector(_active_vertices[l]._m_invalid,
+                                   _penalties.gape(),
+                                   _penalties.gape());
+            compact_invalid_vector(_active_vertices[l]._i_invalid,
+                                   _penalties.gape(),
+                                   _penalties.gape());
             // TODO:
             // compact_invalid_vector(_active_vertices[l]._i2_invalid, TODO,
             // TODO);
-            compact_invalid_vector(_active_vertices[l]._d_invalid, TODO, TODO);
+            compact_invalid_vector(_active_vertices[l]._d_invalid,
+                                   _penalties.gape(),
+                                   _penalties.gape());
             // TODO:
             // compact_invalid_vector(_active_vertices[l]._d2_invalid, TODO,
             // TODO);
@@ -152,23 +178,23 @@ public:
 
         InvalidData new_invalid;
 
-        new_invalid.rem_down = _penalties.gapo() + _penalties.del();
-        new_invalid.rem_up = _penalties.ins();
+        new_invalid.rem_down = _penalties.gapo() + _penalties.gape();
+        new_invalid.rem_up = _penalties.gape();
         new_invalid.seg.start_d = diag;
         new_invalid.seg.end_d = diag;
 
         vdata._m_invalid.push_back(new_invalid);
 
         // New invalid in I
-        new_invalid.rem_down = 2 * _penalties.gapo() + 3 * _penalties.del();
-        new_invalid.rem_up = _penalties.ins();
+        new_invalid.rem_down = 2 * _penalties.gapo() + 3 * _penalties.gape();
+        new_invalid.rem_up = _penalties.gape();
         new_invalid.seg.start_d = diag;
         new_invalid.seg.end_d = diag;
         vdata._i_invalid.push_back(new_invalid);
 
         // New invalid in D (initially empty)
-        new_invalid.rem_down = _penalties.gapo() + _penalties.del();
-        new_invalid.rem_up = _penalties.gapo() + 2 * _penalties.ins();
+        new_invalid.rem_down = _penalties.gapo() + _penalties.gape();
+        new_invalid.rem_up = _penalties.gapo() + 2 * _penalties.gape();
         new_invalid.seg.start_d = diag;
         new_invalid.seg.end_d = diag - 1;
         vdata._d_invalid.push_back(new_invalid);
@@ -179,50 +205,26 @@ public:
 
         InvalidData new_invalid;
 
-        new_invalid.rem_down = _penalties.gapo() + _penalties.del();
-        new_invalid.rem_up = _penalties.gapo() + _penalties.ins();
+        new_invalid.rem_down = _penalties.gapo() + _penalties.gape();
+        new_invalid.rem_up = _penalties.gapo() + _penalties.gape();
         new_invalid.seg.start_d = diag;
         new_invalid.seg.end_d = diag;
 
         vdata._m_invalid.push_back(new_invalid);
 
         // New invalid in I
-        new_invalid.rem_down = 2 * (_penalties.gapo() + _penalties.del());
-        new_invalid.rem_up = _penalties.gapo() + _penalties.ins();
+        new_invalid.rem_down = 2 * (_penalties.gapo() + _penalties.gape());
+        new_invalid.rem_up = _penalties.gapo() + _penalties.gape();
         new_invalid.seg.start_d = diag + 1;
         new_invalid.seg.end_d = diag;
         vdata._i_invalid.push_back(new_invalid);
 
         // New invalid in D (initially empty)
-        new_invalid.rem_down = _penalties.gapo() + _penalties.del();
-        new_invalid.rem_up = 2 * (_penalties.gapo() + _penalties.ins());
+        new_invalid.rem_down = _penalties.gapo() + _penalties.gape();
+        new_invalid.rem_up = 2 * (_penalties.gapo() + _penalties.gape());
         new_invalid.seg.start_d = diag;
         new_invalid.seg.end_d = diag - 1;
         vdata._d_invalid.push_back(new_invalid);
-    }
-
-    bool is_active(int v) {
-        if (v > _vertex_to_idx.size()) {
-            return false;
-        }
-
-        return _vertex_to_idx[v] != -1;
-    }
-
-    void activate_vertex(int v) {
-        if (!is_active(v)) {
-            if (v > _vertex_to_idx.size()) {
-                _vertex_to_idx.resize(v + 1, -1);
-            }
-
-            _vertex_to_idx[v] = _active_vertices.size();
-
-            // Create the new vertex
-            _active_vertices.resize(_vertex_to_idx[v] + 1);
-            _active_vertices[_vertex_to_idx[v]].vertex_id = v;
-            _active_vertices[_vertex_to_idx[v]]._i_jumps_positions.reserve(_squeue.size());
-            _active_vertices[_vertex_to_idx[v]]._m_jumps_positions.reserve(_squeue.size());
-        }
     }
 
     template <Cell::Matrix matrix>
@@ -259,30 +261,6 @@ public:
         }
         return true;
     }
-
-private:
-    InternalPenalties &_penalties;
-
-    struct VertexData {
-        Cell::vertex_t vertex_id;
-
-        std::vector<InvalidData> _m_invalid;
-
-        std::vector<InvalidData> _i_invalid;
-        std::vector<InvalidData> _i2_invalid;
-
-        std::vector<InvalidData> _d_invalid;
-        std::vector<InvalidData> _d2_invalid;
-
-        // Scope with the positions of M jumps in the scope previous waves
-        std::vector<std::vector<int32_t>> _m_jumps_positions;
-
-        // Scope with the positions of I jumps in the scope previous waves
-        std::vector<std::vector<int32_t>> _i_jumps_positions;
-    };
-
-    std::vector<VertexData> _active_vertices;
-    std::vector<Cell::vertex_t> _vertex_to_idx;
 };
 
 }   // namespace theseus

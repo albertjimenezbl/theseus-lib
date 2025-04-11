@@ -35,7 +35,7 @@ public:
 
     /**
      * Create a Gap-Affine penalty object.
-     * 
+     *
      * @param match The match score.
      * @param mismatch The mismatch score.
      * @param gapo The gap open penalty.
@@ -48,7 +48,7 @@ public:
 
     /**
      * Create a Dual Gap-Affine penalty object.
-     * 
+     *
      * @param match The match score.
      * @param mismatch The mismatch score.
      * @param gapo The first gap open penalty.
@@ -73,7 +73,7 @@ public:
     /**
      * Get the match score.
      *
-     * @return The match score. 
+     * @return The match score.
      */
     penalty_t match() const { return _match; }
 

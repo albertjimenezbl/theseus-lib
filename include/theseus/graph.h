@@ -20,8 +20,12 @@ class Graph {
             int first_poa_vtx;              // starting point in the poa graph
         };
 
-    private:
         std::vector<vertex> _vertices;
+
+        // TODO:
+        std::vector<vertex> &vertices() { return _vertices; }
+
+    private:
 };
 
 
@@ -44,9 +48,10 @@ class POAGraph {
             int weight;
         };
 
-    private:
         std::vector<POA_vertex> _poa_vertices;
         std::vector<POA_edge> _poa_edges;
+
+    private:
 };
 
 } // namespace theseus

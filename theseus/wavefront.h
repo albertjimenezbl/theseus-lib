@@ -179,6 +179,20 @@ public:
     const T& operator[](diag_type diag) const { return _middle[diag]; }
 
     /**
+     * Return the minimum diagonal of the wavefront.
+     *
+     * @return The minimum diagonal of the wavefront.
+     */
+    diag_type min_diag() const { return _min_diag; }
+
+    /**
+     * Return the maximum diagonal of the wavefront.
+     *
+     * @return The maximum diagonal of the wavefront.
+     */
+    diag_type max_diag() const { return _max_diag; }
+
+    /**
      * Return the total number of diagonals of the wavefront.
      *
      * @return The total number of diagonals of the wavefront.
