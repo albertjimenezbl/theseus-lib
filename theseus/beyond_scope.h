@@ -16,13 +16,30 @@ public:
     // using Wavefront = ManualCapacityVector<Cell>;
     // using Jumps = ManualCapacityVector<Cell>;
 
-    // TODO:
-    BeyondScope() {
+    /**
+     * @brief Construct a new Beyond Scope object
+     *
+     */
+    BeyondScope()
+    {
         constexpr int expected_nscores = 1024;
         _sdata.reserve(expected_nscores);
     }
 
-    // TODO:
+    /**
+     * @brief Reinitialize the beyond the scope object each time that a new
+     * alignment is called.
+     *
+     */
+    void new_alignment() {
+        /*TODO:*/
+    }
+
+
+    /**
+     * @brief Add a new score to the beyond scope object.
+     *
+     */
     void new_score() {
         if (_sdata.size() == _sdata.capacity()) {
             _sdata.reserve(_sdata.capacity() * 2);
@@ -30,22 +47,42 @@ public:
         _sdata.resize(_sdata.size() + 1);
     }
 
-    // TODO:
+    /**
+     * @brief Access the M wavefront associated to score "score".
+     *
+     * @param score
+     * @return std::vector<Cell>&
+     */
     std::vector<Cell> &m_wf(int score) {
         return _sdata[score]._m_wf;
     }
 
-    // TODO:
+    /**
+     * @brief Access the M jumps wavefront associated to score "score".
+     *
+     * @param score
+     * @return std::vector<Cell>&
+     */
     std::vector<Cell> &m_jumps(int score) {
         return _sdata[score]._m_jumps;
     }
 
-    // TODO:
+    /**
+     * @brief Access the I jumps wavefront associated to score "score".
+     *
+     * @param score
+     * @return std::vector<Cell>&
+     */
     std::vector<Cell> &i_jumps(int score) {
         return _sdata[score]._i_jumps;
     }
 
-    // TODO:
+    /**
+     * @brief Access the I2 jumps wavefront associated to score "score".
+     *
+     * @param score
+     * @return std::vector<Cell>&
+     */
     std::vector<Cell> &i2_jumps(int score) {
         return _sdata[score]._i2_jumps;
     }

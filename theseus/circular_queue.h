@@ -29,7 +29,11 @@ public:
 
     int score() { return _front_score; }
 
-    // TODO:
+    /**
+     * @brief Get the number of elements in the circular queue.
+     *
+     * @return size_type
+     */
     size_type nscores() { return _queue.size(); }
 
     // TODO:
@@ -47,7 +51,12 @@ private:
 
     std::vector<T> _queue;
 
-    // TODO:
+    /**
+     * @brief Convert from score to the corresponding index in the circular queue.
+     *
+     * @param score
+     * @return int
+     */
     int score_to_idx(const int score) const {
         return (_front_idx + score - _front_score) % _queue.size();
     }

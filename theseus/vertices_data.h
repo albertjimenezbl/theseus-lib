@@ -8,15 +8,19 @@
 #include "circular_queue.h"
 #include "theseus/penalties.h"
 
-/**
- * TODO:
- *
- */
 
 namespace theseus {
 
+/**
+ * @brief Class vertices data. It stores the data related to the active vertices,
+ * their indexes, the invalidation data and some jumping data.
+ *
+ */
 class VerticesData {   // TODO: Other name?
 public:
+    template<typename T>
+    struct dependent_false : std::false_type {};
+
     struct Segment {
         int32_t start_d;
         int32_t end_d;
@@ -29,17 +33,6 @@ public:
         int32_t rem_down;   // Remaining scores to grow the segment one diagonal
                             // down
     };
-
-    // TODO:
-    VerticesData(Penalties &penalties, int nscores, int nexpected_vertices) :
-        _penalties(penalties), _nscores(nscores) {
-        _active_vertices.reserve(nexpected_vertices);
-        _vertex_to_idx.reserve(nexpected_vertices);
-    }
-
-private:
-    Penalties &_penalties;
-    int _nscores;
 
     struct VertexData {
         Cell::vertex_t vertex_id;
@@ -59,11 +52,79 @@ private:
         std::vector<std::vector<int32_t>> _i_jumps_positions;
     };
 
-    std::vector<VertexData> _active_vertices;
-    std::vector<Cell::vertex_t> _vertex_to_idx;
+    int _nscores;
+
+    /**
+     * @brief Construct a new Vertices Data object
+     *
+     * @param penalties Set of used penalties.
+     * @param nscores   Number of scores of the scope.
+     * @param nexpected_vertices    Number of expected vertices.
+     */
+    VerticesData(Penalties &penalties, int nscores, int nexpected_vertices) :
+        _penalties(penalties), _nscores(nscores) {
+        _active_vertices.reserve(nexpected_vertices);
+        _vertex_to_idx.reserve(nexpected_vertices);
+    }
+
+    /**
+     * @brief Reinitialize the vertices data object each time that a new
+     * alignment is called.
+     *
+     */
+    void new_alignment() {
+        _active_vertices.clear();
+        _vertex_to_idx.clear();
+    }
+
+    /**
+     * @brief Get the vertex id of a given vertex.
+     *
+     * @param vtx
+     * @return Cell::vertex_t
+     */
+    Cell::vertex_t get_id(int vtx) {
+        return _vertex_to_idx[vtx];
+    }
+
+    Cell::vertex_t get_vertex_id(int idx) {
+        return _active_vertices[idx].vertex_id;
+    }
+
+    /**
+     * @brief Get the vertex data of a given vertex.
+     *
+     * @param vtx
+     * @return VertexData&
+     */
+    VertexData &get_vertex_data(int vtx) {
+        return _active_vertices[_vertex_to_idx[vtx]];
+    }
+
+    /**
+     * @brief Get the position in the scope of a given score.
+     *
+     * @param score
+     * @return int
+     */
+    int get_pos(int score) {
+        return score%_nscores;
+    }
+
+    /**
+     * @brief Get the number of scores.
+     *
+     * @return int
+     */
+    int get_n_scores() {
+        return _nscores;
+    }
 
     // FUNCTIONS
-    // TODO: Compact the invalid vectors.
+    /**
+     * @brief Compact a set of ordered invalid objects to avoid redundant information.
+     *
+     */
     void compact_invalid_vector(std::vector<InvalidData> &invalid_v,
                                 int default_rem_up,
                                 int default_rem_down) {
@@ -119,6 +180,12 @@ private:
         invalid_v.resize(k + 1);
     }
 
+    /**
+     * @brief Expand a set of invalid objects. This means reducing the counters
+     * of remaining scores to grow and growing the segments if those counters get
+     * to 0.
+     *
+     */
     void expand_invalid_vector(std::vector<InvalidData> &invalid_v,
                                int default_rem_up,
                                int default_rem_down) {
@@ -138,7 +205,10 @@ private:
         }
     }
 
-    // TODO: Expand the invalid vectors.
+    /**
+     * @brief Expand all invalid objects.
+     *
+     */
     void expand() {
         for (int l = 0; l < _active_vertices.size(); ++l) {
             auto &vdata = _active_vertices[l];
@@ -152,7 +222,10 @@ private:
         }
     }
 
-    // TODO: Compact the invalid vectors.
+    /**
+     * @brief Compact all invalid objects.
+     *
+     */
     void compact() {
         for (int l = 0; l < _active_vertices.size(); ++l) {
             compact_invalid_vector(_active_vertices[l]._m_invalid,
@@ -173,6 +246,13 @@ private:
         }
     }
 
+    /**
+     * @brief Invalidate a diagonal "diag" in vertex located at index "idx" and
+     * for matrix i. This happens when a jump is performed in the i matrix.
+     *
+     * @param idx
+     * @param diag
+     */
     void invalidate_i_jump(int idx, int diag) {
         VertexData &vdata = _active_vertices[idx];
 
@@ -200,6 +280,13 @@ private:
         vdata._d_invalid.push_back(new_invalid);
     }
 
+    /**
+     * @brief Invalidate a diagonal "diag" in vertex located at index "idx" and
+     * for matrix M. This happens when a jump is performed in the M matrix.
+     *
+     * @param idx
+     * @param diag
+     */
     void invalidate_m_jump(int idx, int diag) {
         VertexData &vdata = _active_vertices[idx];
 
@@ -227,6 +314,15 @@ private:
         vdata._d_invalid.push_back(new_invalid);
     }
 
+    /**
+     * @brief Check if a given diagonal "diag" is valid in the vertex located at
+     * position "idx". This function allows to validate the M, I and D matrices.
+     *
+     * @tparam matrix
+     * @param idx
+     * @param diag
+     * @return bool
+     */
     template <Cell::Matrix matrix>
     bool valid_diagonal(int idx, int diag) {
         VertexData &vdata = _active_vertices[idx];
@@ -261,6 +357,44 @@ private:
         }
         return true;
     }
+
+    /**
+     * @brief Return the number of active vertices.
+     *
+     * @return int
+     */
+    int num_active_vertices() {
+        return _active_vertices.size();
+    }
+
+    /**
+     * @brief Activate a new vertex "vtx" in the active vertices list. Nothing is
+     * done if the vertex is already active.
+     *
+     * @param vtx
+     */
+    void activate_vertex(int vtx) {
+        if (_vertex_to_idx.size() <= vtx) {
+            _vertex_to_idx.resize(2*vtx + 1, -1);
+        }
+        if (_vertex_to_idx[vtx] == -1) {
+            // Add the vertex to the active vertices
+            _active_vertices.push_back(VertexData());
+            _active_vertices[_active_vertices.size() - 1].vertex_id = vtx;
+            _active_vertices[_active_vertices.size() - 1]._i_jumps_positions.resize(_nscores);
+            _active_vertices[_active_vertices.size() - 1]._m_jumps_positions.resize(_nscores);
+
+            // Determine the vertex id
+            _vertex_to_idx[vtx] = _active_vertices.size() - 1;
+        }
+    }
+
+private:
+    Penalties &_penalties;
+
+    std::vector<VertexData> _active_vertices;
+
+    std::vector<Cell::vertex_t> _vertex_to_idx;
 };
 
 }   // namespace theseus

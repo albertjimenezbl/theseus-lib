@@ -15,7 +15,12 @@ public:
     using size_type = ptrdiff_t;
     using diag_type = Cell::idx2d_t;
 
-    // TODO:
+    /**
+     * @brief Construct a new Scratch Pad object
+     *
+     * @param min_diag
+     * @param max_diag
+     */
     ScratchPad(diag_type min_diag, diag_type max_diag) :
         _wf(min_diag, max_diag, Cell{-1, -1, -1, -1, -1, Cell::Matrix::None}) {
 
@@ -46,12 +51,20 @@ public:
         return _diags.size();
     }
 
-    // TODO:
+    /**
+     * @brief Return the minimum diagonal of the wavefront.
+     *
+     * @return diag_type
+     */
     diag_type min_diag() const {
         return _wf.min_diag();
     }
 
-    // TODO:
+    /**
+     * @brief Return the maximum diagonal of the wavefront.
+     *
+     * @return diag_type
+     */
     diag_type max_diag() const {
         return _wf.max_diag();
     }
@@ -61,7 +74,12 @@ public:
         return std::span<diag_type>(_diags.data(), _diags.data() + _diags.size());
     }
 
-    // TODO:
+    /**
+     * @brief Reset the scratchpad. This means setting the offsets to a default
+     * value (-1) and resizing the vector of diagonals to 0 (none have been changed
+     * yet).
+     *
+     */
     void reset() {
         for (const auto diag : _diags) {
             _wf[diag].offset = -1;

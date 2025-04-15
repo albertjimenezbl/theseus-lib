@@ -21,7 +21,11 @@ public:
     // using Jumps = ManualCapacityVector<Cell>;
     // using JumpsPos = ManualCapacityVector<int32_t>;
 
-    // TODO:
+    /**
+     * @brief Construct a new Scope object
+     *
+     * @param nscores Number of scores in the scope
+     */
     Scope(int nscores)
         : _squeue(nscores) {
 
@@ -30,7 +34,10 @@ public:
         }
     }
 
-    // TODO:
+    /**
+     * @brief Restore data for a new alignment.
+     *
+     */
     void new_alignment() {
         _squeue.reset();
         for (int score = 0; score < _squeue.nscores(); ++score) {
@@ -38,57 +45,112 @@ public:
         }
     }
 
-    // TODO:
+    /**
+     * @brief Reinitialize data for a new score. As the scope works as a circular
+     * queue, the previously stored data in a position of the scope is not relevant
+     * anymore and its contents should be reset to be reused again.
+     *
+     */
     void new_score() {
         _squeue.new_score();
         _squeue[_squeue.score()].resize(0);
     }
 
+    /**
+     * @brief Get the size of the scope.
+     *
+     * @return int
+     */
     int size() {
         return _squeue.nscores();
     }
 
-    // TODO:
+    /**
+     * @brief Get the data from the wavefront I of score "score".
+     *
+     * @param score
+     * @return std::vector<Cell>&
+     */
     std::vector<Cell> &i_wf(int score) {
         return _squeue[score]._i_wf;
     }
 
-    // TODO:
+    /**
+     * @brief Get the data from the wavefront D of score "score".
+     *
+     * @param score
+     * @return std::vector<Cell>&
+     */
     std::vector<Cell> &d_wf(int score) {
         return _squeue[score]._d_wf;
     }
 
-    // TODO:
+    /**
+     * @brief Get the data from the wavefront I2 of score "score".
+     *
+     * @param score
+     * @return std::vector<Cell>&
+     */
     std::vector<Cell> &i2_wf(int score) {
         return _squeue[score]._i2_wf;
     }
 
-    // TODO:
+    /**
+     * @brief Get the data from the wavefront D2 of score "score".
+     *
+     * @param score
+     * @return std::vector<Cell>&
+     */
     std::vector<Cell> &d2_wf(int score) {
         return _squeue[score]._d2_wf;
     }
 
-    // TODO:
+    /**
+     * @brief Get the data from the vector of M positions at score "score".
+     *
+     * @param score
+     * @return std::vector<int32_t>&
+     */
     std::vector<int32_t> &m_pos(int score) {
         return _squeue[score]._m_pos;
     }
 
-    // TODO:
+    /**
+     * @brief Get the data from the vector of I positions at score "score".
+     *
+     * @param score
+     * @return std::vector<int32_t>&
+     */
     std::vector<int32_t> &i_pos(int score) {
         return _squeue[score]._i_pos;
     }
 
-    // TODO:
+    /**
+     * @brief Get the data from the vector of I2 positions at score "score".
+     *
+     * @param score
+     * @return std::vector<int32_t>&
+     */
     std::vector<int32_t> &i2_pos(int score) {
         return _squeue[score]._i2_pos;
     }
 
-    // TODO:
+    /**
+     * @brief Get the data from the vector of D positions at score "score".
+     *
+     * @param score
+     * @return std::vector<int32_t>&
+     */
     std::vector<int32_t> &d_pos(int score) {
         return _squeue[score]._d_pos;
     }
 
-    // TODO:
+    /**
+     * @brief Get the data from the vector of D2 positions at score "score".
+     *
+     * @param score
+     * @return std::vector<int32_t>&
+     */
     std::vector<int32_t> &d2_pos(int score) {
         return _squeue[score]._d2_pos;
     }
