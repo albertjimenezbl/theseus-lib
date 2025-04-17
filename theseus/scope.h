@@ -1,9 +1,7 @@
 #pragma once
 
-#include "manual_capacity_vector.h"
 #include "cell.h"
 #include <vector>
-#include "circular_queue.h"
 
 /**
  * TODO:
@@ -39,9 +37,8 @@ public:
      *
      */
     void new_alignment() {
-        _squeue.reset();
-        for (int score = 0; score < _squeue.nscores(); ++score) {
-            _squeue[score].resize(0);
+        for (int i = 0; i < _squeue.size(); ++i) {
+            _squeue[i].resize(0);
         }
     }
 
@@ -51,9 +48,8 @@ public:
      * anymore and its contents should be reset to be reused again.
      *
      */
-    void new_score() {
-        _squeue.new_score();
-        _squeue[_squeue.score()].resize(0);
+    void new_score(int score) {
+        _squeue[score%_squeue.size()].resize(0);
     }
 
     /**
@@ -62,8 +58,9 @@ public:
      * @return int
      */
     int size() {
-        return _squeue.nscores();
+        return _squeue.size();
     }
+
 
     /**
      * @brief Get the data from the wavefront I of score "score".
@@ -72,7 +69,7 @@ public:
      * @return std::vector<Cell>&
      */
     std::vector<Cell> &i_wf(int score) {
-        return _squeue[score]._i_wf;
+        return _squeue[score%_squeue.size()]._i_wf;
     }
 
     /**
@@ -82,7 +79,7 @@ public:
      * @return std::vector<Cell>&
      */
     std::vector<Cell> &d_wf(int score) {
-        return _squeue[score]._d_wf;
+        return _squeue[score%_squeue.size()]._d_wf;
     }
 
     /**
@@ -92,7 +89,7 @@ public:
      * @return std::vector<Cell>&
      */
     std::vector<Cell> &i2_wf(int score) {
-        return _squeue[score]._i2_wf;
+        return _squeue[score%_squeue.size()]._i2_wf;
     }
 
     /**
@@ -102,7 +99,7 @@ public:
      * @return std::vector<Cell>&
      */
     std::vector<Cell> &d2_wf(int score) {
-        return _squeue[score]._d2_wf;
+        return _squeue[score%_squeue.size()]._d2_wf;
     }
 
     /**
@@ -112,7 +109,7 @@ public:
      * @return std::vector<int32_t>&
      */
     std::vector<int32_t> &m_pos(int score) {
-        return _squeue[score]._m_pos;
+        return _squeue[score%_squeue.size()]._m_pos;
     }
 
     /**
@@ -122,7 +119,7 @@ public:
      * @return std::vector<int32_t>&
      */
     std::vector<int32_t> &i_pos(int score) {
-        return _squeue[score]._i_pos;
+        return _squeue[score%_squeue.size()]._i_pos;
     }
 
     /**
@@ -132,7 +129,7 @@ public:
      * @return std::vector<int32_t>&
      */
     std::vector<int32_t> &i2_pos(int score) {
-        return _squeue[score]._i2_pos;
+        return _squeue[score%_squeue.size()]._i2_pos;
     }
 
     /**
@@ -142,7 +139,7 @@ public:
      * @return std::vector<int32_t>&
      */
     std::vector<int32_t> &d_pos(int score) {
-        return _squeue[score]._d_pos;
+        return _squeue[score%_squeue.size()]._d_pos;
     }
 
     /**
@@ -152,7 +149,7 @@ public:
      * @return std::vector<int32_t>&
      */
     std::vector<int32_t> &d2_pos(int score) {
-        return _squeue[score]._d2_pos;
+        return _squeue[score%_squeue.size()]._d2_pos;
     }
 
 private:
@@ -196,7 +193,7 @@ private:
         }
     };
 
-    ScoreCircularQueue<ScoreData> _squeue;
+    std::vector<ScoreData> _squeue;
 };
 
 } // namespace theseus

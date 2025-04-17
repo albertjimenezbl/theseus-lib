@@ -11,7 +11,7 @@
 #include "../../include/theseus/penalties.h"
 #include "../../include/theseus/graph.h"
 #include "../../include/theseus/theseus_aligner.h"
-#include "../../include/theseus/msa.hpp" // TODO: Add this to theseus?
+#include "../../theseus/msa.h" // TODO: Add this to theseus?
 
 // Control of the output.
 #define AVOID_DP 0
@@ -33,43 +33,7 @@ struct CMDArgs {
  * @param POAObject
  * @param first_sequence
  */
-void create_initial_graph(theseus::Graph &G,
-                          theseus::POAGraph &poa_graph,
-                          std::string &first_sequence)
-{
-    // Create the initial graph
-    theseus::POAVertex start_v;
-    start_v.out_edges.push_back(0);
-    start_v.associated_vtx_compact = 0;
-    poa_graph._poa_vertices.push_back(start_v);
-    theseus::POAEdge start_edge;
-    start_edge.source = 0;
-    start_edge.destination = 1;
-    start_edge.weight = 1;
-    start_edge.sequence_IDs.push_back(0);
-    poa_graph._poa_edges.push_back(start_edge);
-    for (int l = 0; l < first_sequence.size(); ++l) {
-        theseus::POAVertex new_v;
-        new_v.in_edges.push_back(l);           // New vertex
-        new_v.value = first_sequence[l];
-        new_v.associated_vtx_compact = 1;
-        new_v.out_edges.push_back(l + 1);      // Add as out edge
-        _poa_graph._poa_vertices.push_back(new_v);
 
-        theseus::POAEdge new_edge;
-        new_edge.destination = l + 2;          // New edge
-        new_edge.source = l + 1;
-        new_edge.weight = 1;
-        new_edge.sequence_IDs.push_back(0);
-        poa_graph._poa_edges.push_back(new_edge);
-    }
-    theseus::POAVertex end_v;
-    end_v.in_edges.push_back(poa_graph._poa_edges.size() - 1);
-    end_v.associated_vtx_compact = 2;
-    poa_graph._poa_vertices.push_back(end_v);
-    int end_vtx_poa = poa_graph._poa_vertices.size() - 1;
-    poa_graph.create_compacted_graph(G, end_vtx_poa);
-}
 
 /**
  * @brief Read the sequences from a file.
@@ -94,7 +58,7 @@ void read_sequences(
 
     // TODO: Allow for several sequence formats
     int num = 0;
-    while (getline(sequence_file, line))
+    while (getline(sequences_file, line))
     {
         if (line.empty())
             continue;
@@ -119,6 +83,10 @@ void read_sequences(
     sequences_file.close();
 }
 
+
+/**
+ * @brief Print the help message.
+ */
 void help() {
     std::cout << "Usage: benchmark [OPTIONS]\n"
                  "Options:\n"
@@ -179,32 +147,19 @@ int main(int argc, char *const *argv) {
 
     theseus::Penalties penalties(args.match, args.mismatch, args.gapo, args.gape);
 
-    theseus::TheseusAligner Aligner();
-
     // Read the sequences for the MSA
     std::vector<std::string> sequences;
     read_sequences(sequences, args);
 
     // Prepare the data
-        // Graph
-        theseus::POAGraph poa_graph;
-        theseus::Graph G;
-        create_initial_graph(G, poa_graph, sequences[0]);
-        int end_vtx_poa = poa_graph.vertices.size() - 1;
-
-        // Other data
-        std::vector<theseus::Alignment> alignments(sequences.size());
-        int end_vertex = 2;
+    std::vector<theseus::Alignment> alignments(sequences.size());
+    theseus::TheseusAligner aligner(penalties, false);
 
     // Alignment with Theseus
-    for (int j = 1; j < sequences.size(); ++j) {
-        alignments[j - 1] = Aligner.align(sequences[j]);
-
-        // Add the alignment to the graph (implies changing the graph G)
-        POAObject.add_alignment_poa(G, alignments[j-1].cigar, sequences[j], j);
-        G._vertices.clear();
-        POAObject.create_compacted_graph(G, end_vtx_poa);
-        end_vertex = G._vertices.size() - 1;
+    for (int j = 0; j < sequences.size(); ++j) {
+        alignments[j] = aligner.align(sequences[j]);
+        std::cout << "Seq " << j << std::endl;
+        std::cout << "Score = " << alignments[j].score << std::endl << std::endl;
     }
 
     return 0;

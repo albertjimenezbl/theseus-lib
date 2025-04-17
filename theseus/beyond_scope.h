@@ -32,7 +32,7 @@ public:
      *
      */
     void new_alignment() {
-        /*TODO:*/
+        _sdata.resize(0);
     }
 
 

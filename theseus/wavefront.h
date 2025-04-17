@@ -1,7 +1,5 @@
 #pragma once
 
-#include "manual_capacity_vector.h"
-
 /**
  * An array indexed by diagonals of the Dynamic Programming matrix.
  * 0 is the main diagonal (the diagonal of the {0, 0} cell), positive values are

@@ -3,9 +3,9 @@
 #include <algorithm>
 #include <cstdint>
 #include <vector>
+// #include <type_traits>
 
 #include "cell.h"
-#include "circular_queue.h"
 #include "theseus/penalties.h"
 
 
@@ -18,9 +18,6 @@ namespace theseus {
  */
 class VerticesData {   // TODO: Other name?
 public:
-    template<typename T>
-    struct dependent_false : std::false_type {};
-
     struct Segment {
         int32_t start_d;
         int32_t end_d;
@@ -50,6 +47,7 @@ public:
 
         // Scope with the positions of I jumps in the scope previous waves
         std::vector<std::vector<int32_t>> _i_jumps_positions;
+        // TODO: _i2_jumps_positions
     };
 
     int _nscores;
@@ -61,10 +59,23 @@ public:
      * @param nscores   Number of scores of the scope.
      * @param nexpected_vertices    Number of expected vertices.
      */
-    VerticesData(Penalties &penalties, int nscores, int nexpected_vertices) :
+    VerticesData(const Penalties &penalties, int nscores, int nexpected_vertices) :
         _penalties(penalties), _nscores(nscores) {
         _active_vertices.reserve(nexpected_vertices);
         _vertex_to_idx.reserve(nexpected_vertices);
+    }
+
+    void new_score(int score) {
+        int len = _active_vertices.size();
+        int pos_curr_score = get_pos(score);
+
+        for (int l = 0; l < len; ++l) {
+            auto &vdata = _active_vertices[l];
+
+            // Clear the jumps (they work as a scope)
+            vdata._m_jumps_positions[pos_curr_score].clear();
+            vdata._i_jumps_positions[pos_curr_score].clear();
+        }
     }
 
     /**
@@ -324,34 +335,33 @@ public:
      * @return bool
      */
     template <Cell::Matrix matrix>
-    bool valid_diagonal(int idx, int diag) {
-        VertexData &vdata = _active_vertices[idx];
+    bool valid_diagonal(int vtx, int diag) {
+        std::vector<InvalidData> &invalid =
+        [this, vtx]() -> std::vector<InvalidData>& {
+            VertexData &vdata = _active_vertices[get_id(vtx)];
+            if constexpr (matrix == Cell::Matrix::M) {
+                return vdata._m_invalid;
+            }
+            else if constexpr (matrix == Cell::Matrix::I) {
+                return vdata._i_invalid;
+            }
+            else if constexpr (matrix == Cell::Matrix::D) {
+                return vdata._d_invalid;
+            }
+            else if constexpr (matrix == Cell::Matrix::I2) {
+                return vdata._i2_invalid;
+            }
+            else if constexpr (matrix == Cell::Matrix::D2) {
+                return vdata._d2_invalid;
+            }
+            else {
+                static_assert([]{ return false; }(), "Unsupported matrix type");
+            }
+        }();
 
-        std::vector<InvalidData> *invalid = nullptr;
-
-        if constexpr (matrix == Cell::Matrix::M) {
-            invalid = &vdata._m_invalid;
-        }
-        else if constexpr (matrix == Cell::Matrix::I) {
-            invalid = &vdata._i_invalid;
-        }
-        else if constexpr (matrix == Cell::Matrix::D) {
-            invalid = &vdata._d_invalid;
-        }
-        else if constexpr (matrix == Cell::Matrix::I2) {
-            invalid = &vdata._i2_invalid;
-        }
-        else if constexpr (matrix == Cell::Matrix::D2) {
-            invalid = &vdata._d2_invalid;
-        }
-        else {
-            static_assert(dependent_false<decltype(matrix)>,
-                          "Invalid matrix type");
-        }
-
-        for (int l = 0; l < invalid->size(); ++l) {
-            if ((*invalid)[l].seg.start_d <= diag &&
-                diag <= (*invalid)[l].seg.end_d) {
+        for (int l = 0; l < invalid.size(); ++l) {
+            if (invalid[l].seg.start_d <= diag &&
+                diag <= invalid[l].seg.end_d) {
                 return false;
             }
         }
@@ -390,7 +400,7 @@ public:
     }
 
 private:
-    Penalties &_penalties;
+    const Penalties &_penalties;
 
     std::vector<VertexData> _active_vertices;
 

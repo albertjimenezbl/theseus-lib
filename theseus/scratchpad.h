@@ -2,7 +2,6 @@
 
 #include <span>
 
-#include "manual_capacity_vector.h"
 #include "wavefront.h"
 #include "cell.h"
 
@@ -24,7 +23,7 @@ public:
     ScratchPad(diag_type min_diag, diag_type max_diag) :
         _wf(min_diag, max_diag, Cell{-1, -1, -1, -1, -1, Cell::Matrix::None}) {
 
-        _diags.realloc(_wf.size());
+        _diags.reserve(_wf.size());
     }
 
     // TODO:
@@ -32,12 +31,13 @@ public:
         // If the diagonal was not yet in the wavefront (offset is -1), add the
         // diagonal to _diags.
         auto size = _diags.size();
+        _diags.resize(size + 1); // TODO: Remove.
 
         _diags[size] = diag;
 
         size += _wf[diag].offset == -1;
 
-        _diags.resize_unsafe(size);
+        _diags.resize(size);
 
         return _wf[diag];
     }
@@ -84,12 +84,12 @@ public:
         for (const auto diag : _diags) {
             _wf[diag].offset = -1;
         }
-        _diags.resize_unsafe(0);
+        _diags.resize(0);
     }
 
 private:
     Wavefront<Cell> _wf;
-    ManualCapacityVector<diag_type> _diags;
+    std::vector<diag_type> _diags;
 };
 
 } // namespace theseus

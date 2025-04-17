@@ -3,8 +3,8 @@
 #include <vector>
 #include <string>
 
-#include "graph.h"
-#include "alignment.h"
+#include "../include/theseus/graph.h"
+#include "../include/theseus/alignment.h"
 
 namespace theseus {
 
@@ -30,6 +30,7 @@ namespace theseus {
 
         std::vector<POAVertex> _poa_vertices;
         std::vector<POAEdge> _poa_edges;
+        int _end_vtx_poa;
 
         /**
          * @brief Update a vertex in the POA graph.
@@ -302,6 +303,32 @@ namespace theseus {
             compacted_G._vertices[compacted_G._vertices.size() - 1].value.clear();
 
             // for (int l = 0; l < compacted_G._vertices.size(); ++l) compacted_G._vertices[l].pos = -INT_MAX; // Initialize to -INT_MAX
+        }
+
+        /**
+         * @brief TODO:
+         *
+         */
+        void create_initial_graph()
+        {
+            // Source vertex
+            theseus::POAVertex source_v;
+            source_v.out_edges.push_back(0);
+            source_v.associated_vtx_compact = 0;
+            _poa_vertices.push_back(source_v);
+            theseus::POAEdge source_edge;
+            source_edge.source = 0;
+            source_edge.destination = 1;
+            source_edge.weight = 0;
+            _poa_edges.push_back(source_edge);
+
+            // Sink vertex
+            theseus::POAVertex sink_v;
+            sink_v.in_edges.push_back(0);
+            sink_v.associated_vtx_compact = 1;
+            _poa_vertices.push_back(sink_v);
+
+            _end_vtx_poa = 1; // Set the end vertex
         }
     };
 }

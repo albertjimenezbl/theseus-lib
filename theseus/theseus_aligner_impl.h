@@ -14,15 +14,16 @@
 #include "vertices_data.h"
 #include "wavefront.h"
 #include "internal_penalties.h"
+#include "msa.h"
 
 namespace theseus {
 
 class TheseusAlignerImpl {
 public:
-    TheseusAlignerImpl(Penalties &penalties,
-                       Graph &graph,
+    TheseusAlignerImpl(const Penalties &penalties,
+                       Graph &&graph,
                        bool msa,
-                       bool _score_only);
+                       bool score_only);
 
     // TODO:
     Alignment align(std::string seq);
@@ -66,15 +67,13 @@ private:
      * @param new_score_diff
      * @param prev_matrix
      */
-    void sparsify_M_data(Graph::vertex *curr_v,
-                         std::vector<Cell> &dense_wf,
+    void sparsify_M_data(std::vector<Cell> &dense_wf,
                          int offset_increase,
                          int shift_factor,
                          int start_idx,
                          int end_idx,
                          int m,
                          int upper_bound,
-                         int vertex_id,
                          int new_score_diff);
 
     /**
@@ -93,14 +92,12 @@ private:
      * @param new_score_diff
      * @param prev_matrix
      */
-    void sparsify_jumps_data(Graph::vertex *curr_v,
-                             std::vector<Cell> &dense_wf,
+    void sparsify_jumps_data(std::vector<Cell> &dense_wf,
                              std::vector<int> &jumps_positions,
                              int offset_increase,
                              int shift_factor,
                              int m,
                              int upper_bound,
-                             int vertex_id,
                              int new_score_diff,
                              Cell::Matrix prev_matrix);
 
@@ -120,15 +117,13 @@ private:
      * @param new_score_diff
      * @param prev_matrix
      */
-    void sparsify_indel_data(Graph::vertex *curr_v,
-                             std::vector<Cell> &dense_wf,
+    void sparsify_indel_data(std::vector<Cell> &dense_wf,
                              int offset_increase,
                              int shift_factor,
                              int start_idx,
                              int end_idx,
                              int m,
                              int upper_bound,
-                             int vertex_id,
                              int added_score_diff);
 
     /**
@@ -152,7 +147,7 @@ private:
      * @param upper_bound // Maximum value of the diagonal
      * @param v
      */
-    void next_D(Graph::vertex *curr_v, int upper_bound, int v);
+    void next_D(int upper_bound, int v);
 
 
     /**
@@ -164,7 +159,7 @@ private:
      * @param upper_bound // Maximum value of the diagonal
      * @param v
      */
-    void next_M(Graph::vertex *curr_v, int upper_bound, int v);
+    void next_M(int upper_bound, int v);
 
     /**
      * @brief Invalidate the diagonal associated to a jump in M, activate the newly
@@ -209,8 +204,7 @@ private:
     void check_and_store_jumps(Graph::vertex *curr_v,
                                std::vector<Cell> &curr_wavefront,
                                int start_idx,
-                               int end_idx,
-                               int v);
+                               int end_idx);
 
     /**
      * @brief Longest Common Prefix of two sequences.
@@ -284,7 +278,7 @@ private:
      * @param curr_cell
      * @param curr_v
      */
-    void one_backtrace_step(Cell &curr_cell, Graph::vertex *curr_v);
+    void one_backtrace_step(Cell &curr_cell);
 
     /**
      * @brief Backtrace the alignment from the end vertex to the start vertex.
@@ -308,10 +302,13 @@ private:
 
     Graph _graph;   // TODO:
 
+    std::unique_ptr<POAGraph> _poa_graph; // TODO: Add this to theseus?
+
     bool _is_msa;
     bool _is_score_only;
     bool _end = false;
     int _end_vertex;
+    int _seq_ID = 0;
     Cell _start_pos;
 
     std::unique_ptr<ScratchPad> _scratchpad;   // TODO: Scratchpad inside scope?
