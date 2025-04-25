@@ -5,6 +5,7 @@
 namespace theseus {
 
 TheseusAligner::TheseusAligner(const Penalties &penalties,
+                               std::string_view seq,
                                bool score_only) {
 
     // Create the initial graph
@@ -16,9 +17,16 @@ TheseusAligner::TheseusAligner(const Penalties &penalties,
     source_v.first_poa_vtx = 0;
     G._vertices.push_back(source_v);
 
+    // Central vertex (initial sequence)
+    central_v.in_vertices.push_back(0);
+    central_v.out_vertices.push_back(2);
+    central_v.first_poa_vtx = 1;
+    central_v.value = seq;
+    G._vertices.push_back(central_v);
+
     // Sink vertex
-    sink_v.in_vertices.push_back(0);
-    sink_v.first_poa_vtx = 1;
+    sink_v.in_vertices.push_back(1);
+    sink_v.first_poa_vtx = seq.size() + 1;
     G._vertices.push_back(sink_v);
 
     _aligner_impl = std::make_unique<TheseusAlignerImpl>(penalties, std::move(G), true, score_only);

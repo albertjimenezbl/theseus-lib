@@ -19,6 +19,7 @@ class TheseusAligner {
 public:
     // Always MSA.
     TheseusAligner(const Penalties &penalties,
+                   std::string_view seq,
                    bool score_only);
 
     TheseusAligner(const Penalties &penalties,

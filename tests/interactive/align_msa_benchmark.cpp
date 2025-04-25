@@ -153,12 +153,12 @@ int main(int argc, char *const *argv) {
 
     // Prepare the data
     std::vector<theseus::Alignment> alignments(sequences.size());
-    theseus::TheseusAligner aligner(penalties, false);
+    theseus::TheseusAligner aligner(penalties, sequences[0], false);
 
     // Alignment with Theseus
-    for (int j = 0; j < sequences.size(); ++j) {
-        alignments[j] = aligner.align(sequences[j]);
+    for (int j = 1; j < sequences.size(); ++j) {
         std::cout << "Seq " << j << std::endl;
+        alignments[j] = aligner.align(sequences[j]);
         std::cout << "Score = " << alignments[j].score << std::endl << std::endl;
     }
 

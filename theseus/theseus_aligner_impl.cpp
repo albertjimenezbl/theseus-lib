@@ -16,7 +16,7 @@ TheseusAlignerImpl::TheseusAlignerImpl(const Penalties &penalties,
 
     if (_is_msa) {
       _poa_graph = std::make_unique<POAGraph>();
-      _poa_graph->create_initial_graph();
+      _poa_graph->create_initial_graph(_graph);
     }
 
     _scope = std::make_unique<Scope>(n_scores);

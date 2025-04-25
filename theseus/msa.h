@@ -309,7 +309,7 @@ namespace theseus {
          * @brief TODO:
          *
          */
-        void create_initial_graph()
+        void create_initial_graph(theseus::Graph &G)
         {
             // Source vertex
             theseus::POAVertex source_v;
@@ -319,16 +319,31 @@ namespace theseus {
             theseus::POAEdge source_edge;
             source_edge.source = 0;
             source_edge.destination = 1;
-            source_edge.weight = 0;
+            source_edge.weight = 1;
             _poa_edges.push_back(source_edge);
+
+            // Central vertices
+            for (int l = 0; l < G._vertices[1].value.size(); ++l) {
+                theseus::POAVertex new_v;
+                new_v.in_edges.push_back(_poa_edges.size() - 1);
+                new_v.out_edges.push_back(_poa_edges.size());
+                new_v.value = G._vertices[1].value[l];
+                new_v.associated_vtx_compact = 1;
+                _poa_vertices.push_back(new_v);
+                theseus::POAEdge new_edge;
+                new_edge.source = _poa_vertices.size() - 1;
+                new_edge.destination = _poa_vertices.size();
+                new_edge.weight = 1;
+                _poa_edges.push_back(new_edge);
+            }
 
             // Sink vertex
             theseus::POAVertex sink_v;
-            sink_v.in_edges.push_back(0);
-            sink_v.associated_vtx_compact = 1;
+            sink_v.in_edges.push_back(_poa_edges.size() - 1);
+            sink_v.associated_vtx_compact = 2;
             _poa_vertices.push_back(sink_v);
 
-            _end_vtx_poa = 1; // Set the end vertex
+            _end_vtx_poa = _poa_vertices.size() - 1; // Set the end vertex
         }
     };
 }
