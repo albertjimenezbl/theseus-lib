@@ -493,6 +493,7 @@ void TheseusAlignerImpl::check_and_store_jumps(Graph::vertex *curr_v,
   }
 }
 
+
 // Compute the Longest Common Prefix between two given sequences
 void TheseusAlignerImpl::LCP(std::string &seq_1,
                              std::string &seq_2,
@@ -507,6 +508,7 @@ void TheseusAlignerImpl::LCP(std::string &seq_1,
         j = j + 1;
     }
 }
+
 
 // TODO: Implement different end conditions as Global, Semi-Global...
 void TheseusAlignerImpl::check_end_condition(Cell curr_data, // Offset and prev_index
@@ -562,17 +564,20 @@ void TheseusAlignerImpl::add_mismatch()
   _alignment.cigar.edit_op.push_back('X');
 }
 
+
 // Add an insertion to our backtracking vector
 void TheseusAlignerImpl::add_insertion()
 {
   _alignment.cigar.edit_op.push_back('I');
 }
 
+
 // Add a deletion to our backtracking vector
 void TheseusAlignerImpl::add_deletion()
 {
   _alignment.cigar.edit_op.push_back('D');
 }
+
 
 void TheseusAlignerImpl::one_backtrace_step(
     Cell &curr_cell) {

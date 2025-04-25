@@ -4,6 +4,7 @@
 
 #include "wavefront.h"
 #include "cell.h"
+#include "vector.h"
 
 // TODO:
 
@@ -23,7 +24,7 @@ public:
     ScratchPad(diag_type min_diag, diag_type max_diag) :
         _wf(min_diag, max_diag, Cell{-1, -1, -1, -1, -1, Cell::Matrix::None}) {
 
-        _diags.reserve(_wf.size());
+        _diags.realloc(_wf.size());
     }
 
     // TODO:
@@ -31,13 +32,14 @@ public:
         // If the diagonal was not yet in the wavefront (offset is -1), add the
         // diagonal to _diags.
         auto size = _diags.size();
-        _diags.resize(size + 1); // TODO: Remove.
 
+        // We are writing out of boundaries but inside capacity.
+        // This is okay with a theseus::vector of trivial types (this is the case).
         _diags[size] = diag;
 
         size += _wf[diag].offset == -1;
 
-        _diags.resize(size);
+        _diags.resize_unsafe(size);
 
         return _wf[diag];
     }
@@ -89,7 +91,7 @@ public:
 
 private:
     Wavefront<Cell> _wf;
-    std::vector<diag_type> _diags;
+    vector<diag_type> _diags;
 };
 
 } // namespace theseus
