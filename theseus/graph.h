@@ -3,6 +3,7 @@
 #include<vector>
 #include<string>
 #include<iostream>
+#include"theseus/gfa_graph.h"
 
 /**
  * TODO:
@@ -13,11 +14,18 @@ namespace theseus {
 
 class Graph {
     public:
+        struct edge {
+            int from_vertex; // from vertex
+            int to_vertex;   // to vertex
+            size_t overlap = 0;  // overlap length
+        };
+
         struct vertex
         {
-            std::vector<int> in_vertices;   // in-going vertices
-            std::vector<int> out_vertices;  // out-going vertices
+            std::vector<edge> in_edges;     // in-going vertices
+            std::vector<edge> out_edges;    // out-going vertices
             std::string value;              // sequence associated to the edge
+            std::string name;               // name of the vertex
             int first_poa_vtx;              // starting point in the poa graph
         };
 
@@ -26,6 +34,14 @@ class Graph {
         // TODO:
         std::vector<vertex> &vertices() { return _vertices; }
 
+        Graph() = default;
+
+        /**
+         * @brief Construct a new Graph object from a GfaGraph object.
+         *
+         * @param gfa_graph
+         */
+        Graph(const GfaGraph &gfa_graph);
 
         /**
          * @brief Visualize the graph in Graphviz format.
@@ -49,9 +65,9 @@ class Graph {
             // Set edges
             for (int i = 0; i < _vertices.size(); ++i)
             {
-                for (int j = 0; j < _vertices[i].out_vertices.size(); ++j)
+                for (int j = 0; j < _vertices[i].out_edges.size(); ++j)
                 {
-                    int out_v = _vertices[i].out_vertices[j];
+                    int out_v = _vertices[i].out_edges[j].to_vertex;
                     std::cout << i << "->" << out_v << std::endl;
                 }
             }

@@ -5,6 +5,7 @@
 #include <typeinfo>
 
 #include "growing_allocator.h"
+#include "vector.h"
 
 /**
  * TODO:
@@ -12,6 +13,12 @@
  */
 
 namespace theseus {
+
+constexpr ptrdiff_t realloc_wavefront_policy(std::ptrdiff_t capacity,
+                                             std::ptrdiff_t required_size)
+{
+    return required_size * 1.5;
+};
 
 // WARNING: We want Cell to be a simple struct so it is standard layout and
 // trivial. This way, resizes of Vector<Cell> are free.

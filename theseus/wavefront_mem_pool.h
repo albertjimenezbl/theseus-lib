@@ -61,21 +61,17 @@ public:
      * @return void* A pointer to the allocated memory.
      */
     void *allocate(std::size_t nbytes) override {
-        const std::size_t alloc_bytes = nbytes * 1.5;   // Allocate 50% more.
+        constexpr double size_factor = 1.5; // Allocate 50% more.
+        const std::size_t alloc_bytes = nbytes * size_factor;
 
         // Find a chunk that has enough space.
         // curr_chunk now points to the last used chunk.
         bool chunk_found = false;
         while (_curr_chunk->next != nullptr) {
             _curr_chunk = _curr_chunk->next;
-            // Chunk found.
-            if (_curr_chunk->total_bytes >= nbytes) {
-                chunk_found = true;
 
-                break;
-            }
             // This chunk should be deleted and reused.
-            else if (_curr_chunk->unused_count >= max_unused_count) {
+            if (_curr_chunk->unused_count >= max_unused_count) {
                 chunk_found = true;
 
                 ::operator delete(static_cast<void *>(_curr_chunk->data));
@@ -86,11 +82,19 @@ public:
 
                 break;
             }
+            // Chunk found.
+            else if (_curr_chunk->total_bytes >= nbytes) {
+                chunk_found = true;
+
+                break;
+            }
             // This chunk can not be used.
             else {
                 _curr_chunk->unused_count++;
             }
         }
+
+        constexpr double too_big_factor = 3.0;
 
         // We need a new chunk.
         if (!chunk_found) {
@@ -102,12 +106,16 @@ public:
             _curr_chunk->next = new_chunk;
             _curr_chunk = new_chunk;
         }
+        // In case the chunk uses too much memory, increase the unused count.
+        else if (_curr_chunk->total_bytes > nbytes * too_big_factor) {
+            _curr_chunk->unused_count++;
+        }
 
         return _curr_chunk->data;
     }
 
 private:
-    static constexpr int max_unused_count = 10;
+    static constexpr int max_unused_count = 5;
 
     struct Chunk {
         std::size_t total_bytes;

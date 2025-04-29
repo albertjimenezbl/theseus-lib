@@ -3,7 +3,7 @@
 #include <vector>
 #include <string>
 
-#include "../include/theseus/graph.h"
+#include "graph.h"
 #include "../include/theseus/alignment.h"
 
 namespace theseus {
@@ -276,26 +276,32 @@ namespace theseus {
             for (int l = 0; l < compacted_G._vertices.size(); ++l) {
                 // Get incoming vertices
                 for (int k = 0; k < _poa_vertices[compacted_G._vertices[l].first_poa_vtx].in_edges.size(); ++k) {
-                int new_in_vtx_poa = _poa_edges[_poa_vertices[compacted_G._vertices[l].first_poa_vtx].in_edges[k]].source;
-                int new_in_vtx_compacted = _poa_vertices[new_in_vtx_poa].associated_vtx_compact;
-                compacted_G._vertices[l].in_vertices.push_back(new_in_vtx_compacted);
+                    int new_in_vtx_poa = _poa_edges[_poa_vertices[compacted_G._vertices[l].first_poa_vtx].in_edges[k]].source;
+                    Graph::edge new_in_vtx_compacted;
+                    new_in_vtx_compacted.from_vertex = _poa_vertices[new_in_vtx_poa].associated_vtx_compact;
+                    new_in_vtx_compacted.to_vertex = l;
+                    compacted_G._vertices[l].in_edges.push_back(new_in_vtx_compacted);
                 }
 
                 // Get outgoing vertices
                 int last_poa_vtx = compacted_G._vertices[l].first_poa_vtx;
-                while (last_poa_vtx < _poa_vertices.size() - 1) { // Find last poa vtx
+                while (last_poa_vtx < _poa_vertices.size() - 1)
+                { // Find last poa vtx
                     ++last_poa_vtx;
-                    if (_poa_vertices[last_poa_vtx].associated_vtx_compact != l) {
+                    if (_poa_vertices[last_poa_vtx].associated_vtx_compact != l)
+                    {
                         --last_poa_vtx;
                         break;
                     }
-                    }
-                    for (int k = 0; k < _poa_vertices[last_poa_vtx].out_edges.size(); ++k) {
-                    int new_out_vtx_poa = _poa_edges[_poa_vertices[last_poa_vtx].out_edges[k]].destination;
-                    int new_out_vtx_compacted = _poa_vertices[new_out_vtx_poa].associated_vtx_compact;
-                    compacted_G._vertices[l].out_vertices.push_back(new_out_vtx_compacted);
                 }
-
+                for (int k = 0; k < _poa_vertices[last_poa_vtx].out_edges.size(); ++k)
+                {
+                    int new_out_vtx_poa = _poa_edges[_poa_vertices[last_poa_vtx].out_edges[k]].destination;
+                    Graph::edge new_out_vtx_compacted;
+                    new_out_vtx_compacted.from_vertex = l;
+                    new_out_vtx_compacted.to_vertex = _poa_vertices[new_out_vtx_poa].associated_vtx_compact;
+                    compacted_G._vertices[l].out_edges.push_back(new_out_vtx_compacted);
+                }
             }
 
             // Set start and end nodes as not having any value

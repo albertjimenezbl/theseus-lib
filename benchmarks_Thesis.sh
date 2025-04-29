@@ -25,10 +25,10 @@ for gene in "${GENES[@]}"; do
     # Execute SPOA
     # echo "SPOA"
     # \time -p $SCRIPT_DIR/bin/spoa -m 0 -n -2 -g -3 -e -1 -l 1 -r 1 -d output.txt $FILE_PATH 2>&1 >/dev/null | tail -n 3
-    # # Execute POASTA
-    # echo "POASTA"
-    # \time -p $SCRIPT_DIR/bin/poasta align -o graph.poasta $FILE_PATH 2>&1 >/dev/null | tail -n 3
-    # # Execute Teresa DAG (segments)
+    # Execute POASTA
+    echo "POASTA"
+    \time -p $SCRIPT_DIR/SOTA/poasta/target/release/poasta align -o graph.poasta $FILE_PATH 2>&1 >/dev/null | tail -n 3
+    # Execute Teresa DAG (segments)
     echo "Theseus DAG diagonals"
     \time -p $SCRIPT_DIR/build/tests/interactive/align_msa_benchmark -s $FILE_PATH 2>&1 >/dev/null | tail -n 3
     # Execute Theseus voracious

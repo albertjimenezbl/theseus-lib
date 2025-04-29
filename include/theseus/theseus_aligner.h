@@ -3,8 +3,8 @@
 #include <memory>
 
 #include "theseus/penalties.h"
-#include "theseus/graph.h"
 #include "theseus/alignment.h"
+#include "gfa_graph.h"
 
 /**
  * TODO:
@@ -23,12 +23,7 @@ public:
                    bool score_only);
 
     TheseusAligner(const Penalties &penalties,
-                   const Graph &graph,
-                   bool msa,
-                   bool score_only);
-
-    TheseusAligner(const Penalties &penalties,
-                   Graph &&graph,
+                   const GfaGraph &gfa_graph,
                    bool msa,
                    bool score_only);
 

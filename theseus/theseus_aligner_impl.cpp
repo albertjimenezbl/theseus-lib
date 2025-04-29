@@ -309,7 +309,7 @@ Alignment TheseusAlignerImpl::align(std::string seq)
     // Check, store and invalidate new I jumps
     if (_vertices_data->get_id(v) == 0) start_idx = 0;
     else start_idx = _scope->i_pos(_score)[_vertices_data->get_id(v) - 1];
-    if (curr_v->out_vertices.size() > 0) {
+    if (curr_v->out_edges.size() > 0) {
       check_and_store_jumps(curr_v, _scope->i_wf(_score), start_idx, new_end);
     }
 }
@@ -413,18 +413,18 @@ void TheseusAlignerImpl::store_M_jump(Graph::vertex* curr_v,
 
   // Invalidate the jumping diagonal
   _vertices_data->invalidate_m_jump(_vertices_data->get_id(prev_cell.vertex_id), prev_cell.diag);
-
   int pos_score = _vertices_data->get_pos(_score);
-  int num_out_v = curr_v->out_vertices.size();
+  int new_diag = -prev_cell.offset;
+  int num_out_v = curr_v->out_edges.size();
   Cell new_cell = prev_cell;
-  new_cell.diag = -new_cell.offset;
   new_cell.from_matrix = from_matrix;
   new_cell.prev_pos = prev_pos;
   new_cell.score_diff = score_diff;
 
   for (int l = 0; l < num_out_v; ++l) {
-    new_cell.vertex_id = curr_v->out_vertices[l];
-    Graph::vertex* new_v = &_graph._vertices[curr_v->out_vertices[l]];
+    new_cell.vertex_id = curr_v->out_edges[l].to_vertex;
+    new_cell.diag = new_diag + curr_v->out_edges[l].overlap;
+    Graph::vertex* new_v = &_graph._vertices[new_cell.vertex_id];
     _vertices_data->activate_vertex(new_cell.vertex_id);
 
     // Store jump and metadata
@@ -450,13 +450,14 @@ void TheseusAlignerImpl::store_I_jump(Graph::vertex* curr_v,
 
   std::vector<Cell> new_wave;
   int pos_score = _vertices_data->get_pos(_score);
-  int len = curr_v->out_vertices.size();
+  int new_diag = -prev_cell.offset;
+  int len = curr_v->out_edges.size();
   Cell new_cell = prev_cell;
-  new_cell.diag = -new_cell.offset;
   new_cell.from_matrix = from_matrix;
   new_cell.prev_pos = prev_pos;
   for (int l = 0; l < len; ++l) {
-    new_cell.vertex_id = curr_v->out_vertices[l];
+    new_cell.vertex_id = curr_v->out_edges[l].to_vertex;
+    new_cell.diag = new_diag + curr_v->out_edges[l].overlap;
     _vertices_data->activate_vertex(new_cell.vertex_id);
 
     // Store jump and metadata
@@ -515,8 +516,12 @@ void TheseusAlignerImpl::check_end_condition(Cell curr_data, // Offset and prev_
                         int j,
                         int v) {
 
-  int j_end = 0; // The last node is empty
-  if (curr_data.offset == _seq.size() && v == _end_vertex && j == j_end) { // End condition global alignment
+  int j_end = _graph._vertices[v].value.size(); // The last node is empty
+  if (!_is_msa && curr_data.offset == _seq.size()) {
+    _end = true;
+    _start_pos = curr_data;
+  }
+  else if (_is_msa && curr_data.offset == _seq.size() && v == _end_vertex && j == j_end) { // End condition global alignment
     _end = true;
     _start_pos = curr_data;
   }
@@ -540,7 +545,7 @@ void TheseusAlignerImpl::extend_diagonal(
   check_end_condition(curr_cell, j, v); // Check end condition
 
   // Check jump
-  if (j == curr_v->value.size() && curr_cell.offset <= _seq.size() && curr_v->out_vertices.size() > 0) {
+  if (j == curr_v->value.size() && curr_cell.offset <= _seq.size() && curr_v->out_edges.size() > 0) {
     store_M_jump(curr_v, prev_cell, prev_pos, from_matrix, 0);
   }
 }

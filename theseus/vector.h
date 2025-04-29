@@ -413,6 +413,19 @@ public:
     }
 
     /**
+     * Erases all elements from the container. After this call, size() returns zero.
+     * Does not affect the capacity of the vector.
+     *
+     */
+    void clear() {
+        if constexpr (!avoid_init()) {
+            destroy_elements_range(0, _size);
+        }
+
+        _size = 0;
+    }
+
+    /**
      * Get the size of the vector.
      *
      * @return The size of the vector.

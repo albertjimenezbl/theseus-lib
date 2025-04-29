@@ -5,6 +5,7 @@
 #include "cell.h"
 #include "wavefront_mem_pool.h"
 #include "growing_allocator.h"
+#include "vector.h"
 
 /**
  * TODO:
@@ -30,12 +31,12 @@ public:
      *
      */
     void new_alignment() {
+        _sdata.clear();
+
         _m_wf_mem_pool.clear();
         _m_jumps_mem_pool.clear();
         _i_jumps_mem_pool.clear();
         _i2_jumps_mem_pool.clear();
-
-        _sdata.clear();
     }
 
 
@@ -53,7 +54,26 @@ public:
                      &_i_jumps_mem_pool,
                      &_i2_jumps_mem_pool);
 
+        if (_sdata.empty()) {
+            // Size of the first wavefronts.
+            constexpr int first_wf_size = 10;
+            sd._m_wf.reserve(first_wf_size);
+            sd._m_jumps.reserve(first_wf_size);
+            sd._i_jumps.reserve(first_wf_size);
+            sd._i2_jumps.reserve(first_wf_size);
+        }
+        else {
+            ScoreData &prev_sd = _sdata.back();
+            // Set the initial size based on the size of the previous wfs.
+            constexpr double realloc_factor = 1.5;
+            sd._m_wf.reserve(prev_sd._m_jumps.size() * realloc_factor);
+            sd._m_jumps.reserve(prev_sd._m_jumps.size() * realloc_factor);
+            sd._i_jumps.reserve(prev_sd._m_jumps.size() * realloc_factor);
+            sd._i2_jumps.reserve(prev_sd._m_jumps.size() * realloc_factor);
+        }
+
         _sdata.push_back(std::move(sd));
+
     }
 
     /**

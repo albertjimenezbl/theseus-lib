@@ -5,8 +5,8 @@
 
 #include "theseus/alignment.h"
 #include "theseus/penalties.h"
-#include "theseus/graph.h"
 
+#include "graph.h"
 #include "beyond_scope.h"
 #include "cell.h"
 #include "scope.h"

@@ -11,40 +11,38 @@ TheseusAligner::TheseusAligner(const Penalties &penalties,
     // Create the initial graph
     theseus::Graph G;
     theseus::Graph::vertex source_v, central_v, sink_v;
+    Graph::edge source_edge, central_edge;
 
     // Source vertex
-    source_v.out_vertices.push_back(1);
+    source_edge.from_vertex = 0;
+    source_edge.to_vertex = 1;
+    source_v.out_edges.push_back(source_edge);
     source_v.first_poa_vtx = 0;
     G._vertices.push_back(source_v);
 
     // Central vertex (initial sequence)
-    central_v.in_vertices.push_back(0);
-    central_v.out_vertices.push_back(2);
+    central_edge.from_vertex = 1;
+    central_edge.to_vertex = 2;
+    central_v.in_edges.push_back(source_edge);
+    central_v.out_edges.push_back(central_edge);
     central_v.first_poa_vtx = 1;
     central_v.value = seq;
     G._vertices.push_back(central_v);
 
     // Sink vertex
-    sink_v.in_vertices.push_back(1);
+    sink_v.in_edges.push_back(central_edge);
     sink_v.first_poa_vtx = seq.size() + 1;
     G._vertices.push_back(sink_v);
 
     _aligner_impl = std::make_unique<TheseusAlignerImpl>(penalties, std::move(G), true, score_only);
 }
 
-
 TheseusAligner::TheseusAligner(const Penalties &penalties,
-                               const Graph &graph,
+                               const GfaGraph &gfa_graph,
                                bool msa,
-                               bool score_only) {
-    Graph graph_copy = graph;
-    _aligner_impl = std::make_unique<TheseusAlignerImpl>(penalties, std::move(graph_copy), msa, score_only);
-}
-
-TheseusAligner::TheseusAligner(const Penalties &penalties,
-                               Graph &&graph,
-                               bool msa,
-                               bool score_only) {
+                               bool score_only)
+{
+    Graph graph(gfa_graph);
     _aligner_impl = std::make_unique<TheseusAlignerImpl>(penalties, std::move(graph), msa, score_only);
 }
 

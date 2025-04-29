@@ -7,11 +7,13 @@
 #include <string>
 
 #include "../dp_aligner.h"
-#include "../../include/theseus/alignment.h"
-#include "../../include/theseus/penalties.h"
-#include "../../include/theseus/graph.h"
-#include "../../include/theseus/theseus_aligner.h"
-#include "../../theseus/msa.h" // TODO: Add this to theseus?
+#include "theseus/alignment.h"
+#include "theseus/penalties.h"
+#include "theseus/theseus_aligner.h"
+#include "../../theseus/msa.h"
+#include "../../theseus/graph.h"
+
+#include <vector>
 
 // Control of the output.
 #define AVOID_DP 0
