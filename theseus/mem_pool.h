@@ -53,9 +53,7 @@ public:
      * @return bool True if the other memory pool can deallocate the memory
      * allocated by this memory pool.
      */
-    bool operator==(const MemPool &other) {
-        return (this == &other);
-    };
+    virtual bool operator==(const MemPool &other) = 0;
 
     /**
      * The inverse to == operator.
@@ -64,9 +62,7 @@ public:
      * @return bool True if the other memory pool cannot deallocate the memory
      * allocated by this memory pool.
      */
-    bool operator!=(const MemPool &other) {
-        return (this != &other);
-    };
+    virtual bool operator!=(const MemPool &other) = 0;
 
     /**
      * Virtual class destructor.

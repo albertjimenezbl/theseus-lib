@@ -128,6 +128,15 @@ public:
     void deallocate([[maybe_unused]] void *ptr, [[maybe_unused]] std::size_t nbytes) override {
         // Do nothing.
     }
+
+    /**
+     * Memory allocated by this pool can be deallocated by other pool.
+     *
+     * @param other Another memory pool.
+     */
+    bool operator==(const MemPool &other) override { return true; }
+    bool operator!=(const MemPool &other) override { return false; }
+
 private:
     static constexpr int max_too_big_count = 10;
     static constexpr double too_big_factor = 3.0;
