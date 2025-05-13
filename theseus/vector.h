@@ -36,7 +36,7 @@
 
 namespace theseus {
 
-template <typename T, bool avoid_init_if_possible = false, typename Allocator = std::allocator<T>>
+template <typename T, bool avoid_init_if_possible = true, typename Allocator = std::allocator<T>>
 class Vector {
 public:
     /**

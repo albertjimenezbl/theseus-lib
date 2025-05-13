@@ -18,7 +18,7 @@ class Alignment {
      */
       struct Cigar {
         std::vector<char> edit_op; // Edit operations
-        std::vector<int> path;      // Path of the alignment
+        std::vector<int> path;     // Path of the alignment
       };
 
       int score;

@@ -157,11 +157,31 @@ int main(int argc, char *const *argv) {
     // Prepare the data
     std::vector<theseus::Alignment> alignments(sequences.size());
     theseus::TheseusAligner aligner(penalties, sequences[0], false);
+    theseus::Alignment dummy_alg;
 
     // Alignment with Theseus
     for (int j = 1; j < sequences.size(); ++j) {
         std::cout << "Seq " << j << std::endl;
         alignments[j] = aligner.align(sequences[j]);
+        // if (j == 224) {
+        //      for (int l = 0; l < alignments[j].cigar.edit_op.size(); ++l) {
+        //         std::cout << alignments[j].cigar.edit_op[l] << " ";
+        //     }
+        //     std::cout << std::endl;
+        // }
+
+        // Check if all sequences match perfectly
+        // for (int l = 0; l < j; ++l) {
+        //     dummy_alg = aligner.align(sequences[j]);
+        //     if (dummy_alg.score != 0) {
+        //         // for (int l = 0; l < dummy_alg.cigar.edit_op.size(); ++l) {
+        //         //     std::cout << dummy_alg.cigar.edit_op[l] << " ";
+        //         // }
+        //         // std::cout << std::endl;
+        //         std::cerr << "Error: The alignment score in sequence " << j << " is: " << dummy_alg.score << "not zero." << std::endl;
+        //         return 1;
+        //     }
+        // }
         std::cout << "Score = " << alignments[j].score << std::endl << std::endl;
     }
 

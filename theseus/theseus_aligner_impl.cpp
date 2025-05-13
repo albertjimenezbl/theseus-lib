@@ -113,7 +113,7 @@ Alignment TheseusAlignerImpl::align(std::string seq)
 
   // TODO: Set initial conditions
   _score = 0;
-  _end_vertex = _graph._vertices.size() - 1; // TODO: Set the end vertex
+  _end_vertex = 2; // TODO: Set the end vertex
   _end = false;
   // _graph.print_code_graphviz();
 
@@ -140,8 +140,6 @@ Alignment TheseusAlignerImpl::align(std::string seq)
       _seq_ID += 1;
       backtrace(0);
       _poa_graph->add_alignment_poa(_graph, _alignment.cigar, _seq, _seq_ID);
-      _graph._vertices.clear();
-      _poa_graph->create_compacted_graph(_graph, _poa_graph->_end_vtx_poa);
   }
 
   return _alignment;
