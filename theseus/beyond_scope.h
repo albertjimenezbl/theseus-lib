@@ -22,7 +22,14 @@ public:
      */
     BeyondScope() {
         constexpr int expected_nscores = 1024;
-        _sdata.reserve(expected_nscores);
+        _sdata.realloc(expected_nscores);
+
+        auto sdata_realloc_policy = [](std::ptrdiff_t capacity,
+                                       std::ptrdiff_t required_size) -> std::ptrdiff_t {
+            return required_size * 2;
+        };
+
+        _sdata.set_realloc_policy(sdata_realloc_policy);
     }
 
     /**
@@ -45,10 +52,6 @@ public:
      *
      */
     void new_score() {
-        if (_sdata.size() == _sdata.capacity()) {
-            _sdata.reserve(_sdata.capacity() * 2);
-        }
-
         ScoreData sd(&_m_wf_mem_pool,
                      &_m_jumps_mem_pool,
                      &_i_jumps_mem_pool,
@@ -57,23 +60,22 @@ public:
         if (_sdata.empty()) {
             // Size of the first wavefronts.
             constexpr int first_wf_size = 10;
-            sd._m_wf.reserve(first_wf_size);
-            sd._m_jumps.reserve(first_wf_size);
-            sd._i_jumps.reserve(first_wf_size);
-            sd._i2_jumps.reserve(first_wf_size);
+            sd._m_wf.realloc(first_wf_size);
+            sd._m_jumps.realloc(first_wf_size);
+            sd._i_jumps.realloc(first_wf_size);
+            sd._i2_jumps.realloc(first_wf_size);
         }
         else {
             ScoreData &prev_sd = _sdata.back();
             // Set the initial size based on the size of the previous wfs.
             constexpr double realloc_factor = 1.5;
-            sd._m_wf.reserve(prev_sd._m_jumps.size() * realloc_factor);
-            sd._m_jumps.reserve(prev_sd._m_jumps.size() * realloc_factor);
-            sd._i_jumps.reserve(prev_sd._m_jumps.size() * realloc_factor);
-            sd._i2_jumps.reserve(prev_sd._m_jumps.size() * realloc_factor);
+            sd._m_wf.realloc(prev_sd._m_wf.size() * realloc_factor);
+            sd._m_jumps.realloc(prev_sd._m_jumps.size() * realloc_factor);
+            sd._i_jumps.realloc(prev_sd._i_jumps.size() * realloc_factor);
+            sd._i2_jumps.realloc(prev_sd._i2_jumps.size() * realloc_factor);
         }
 
         _sdata.push_back(std::move(sd));
-
     }
 
     /**
@@ -132,14 +134,26 @@ private:
         ScoreData(MemPoolWavefront *const m_wf_mem_pool,
                   MemPoolWavefront *const m_jumps_mem_pool,
                   MemPoolWavefront *const i_jumps_mem_pool,
-                  MemPoolWavefront *const i2_jumps_mem_pool) :
-            _m_wf(MemPoolAllocator<Cell>{m_wf_mem_pool}),
-            _m_jumps(MemPoolAllocator<Cell>{m_jumps_mem_pool}),
-            _i_jumps(MemPoolAllocator<Cell>{i_jumps_mem_pool}),
-            _i2_jumps(MemPoolAllocator<Cell>{i2_jumps_mem_pool}) {}
+                  MemPoolWavefront *const i2_jumps_mem_pool)
+            : _m_wf(MemPoolAllocator<Cell>{m_wf_mem_pool}),
+              _m_jumps(MemPoolAllocator<Cell>{m_jumps_mem_pool}),
+              _i_jumps(MemPoolAllocator<Cell>{i_jumps_mem_pool}),
+              _i2_jumps(MemPoolAllocator<Cell>{i2_jumps_mem_pool}) {
+
+            auto wf_realloc_policy =
+                [](std::ptrdiff_t capacity,
+                   std::ptrdiff_t required_size) -> std::ptrdiff_t {
+                return required_size * 1.5;
+            };
+
+            _m_wf.set_realloc_policy(wf_realloc_policy);
+            _m_jumps.set_realloc_policy(wf_realloc_policy);
+            _i_jumps.set_realloc_policy(wf_realloc_policy);
+            _i2_jumps.set_realloc_policy(wf_realloc_policy);
+        }
     };
 
-    std::vector<ScoreData> _sdata;
+    Vector<ScoreData> _sdata;
 };
 
 } // namespace theseus
