@@ -91,7 +91,7 @@ public:
 
 private:
     Wavefront<Cell> _wf;
-    Vector<diag_type> _diags;
+    Vector<diag_type, true> _diags;
 };
 
 } // namespace theseus
