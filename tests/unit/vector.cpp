@@ -431,6 +431,13 @@ TEST_CASE("Test vector element access") {
 
     CHECK(v.back() == -2);
     CHECK(v[size - 1] == -2);
+
+    try {
+        v.at(size * 2);
+        CHECK(false);
+    } catch (const std::out_of_range &e) {
+        CHECK(true);
+    }
 }
 
 TEST_CASE("Test vector iterator") {
@@ -469,6 +476,32 @@ TEST_CASE("Test vector iterator") {
             ++i;
         }
     }
+
+    SUBCASE("Iterator access") {
+        theseus::Vector<int> v(size, 200);
+
+        for (int i = 0; i < size; ++i) {
+            v[i] = i;
+        }
+
+        auto it1 = v.begin() + 100;
+        CHECK(*it1 == 100);
+        CHECK(it1[10] == 110);
+
+        auto it2 = v.end() - 100;
+        CHECK(*it2 == 400);
+        CHECK(it2 - it1 == 300);
+        CHECK(it1 != it2);
+        CHECK(it1 < it2);
+        CHECK(it1 <= it2);
+        CHECK(it2 > it1);
+        CHECK(it2 >= it1);
+
+        v.clear();
+        CHECK(v.begin() == v.end());
+        CHECK(it1 <= it2);
+        CHECK(it2 >= it1);
+    }
 }
 
 TEST_CASE("Test vector swap") {
@@ -495,6 +528,13 @@ TEST_CASE("Test vector swap") {
         CHECK(v1[i] == 300);
         CHECK(v2[i] == 200);
     }
+
+    std::swap(v1, v2);
+    CHECK(v1.size() == size * 2);
+    CHECK(v1.capacity() == size * 2);
+
+    CHECK(v2.size() == size);
+    CHECK(v2.capacity() == size);
 }
 
 TEST_CASE("Test vector realloc policy") {

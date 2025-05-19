@@ -45,11 +45,19 @@ public:
      */
     class Iterator {
     public:
-        using iterator_category = std::bidirectional_iterator_tag;
+        using iterator_category = std::random_access_iterator_tag;
+        using iterator_concept = std::contiguous_iterator_tag;
         using value_type = T;
+        using size_type = std::ptrdiff_t;
         using difference_type = std::ptrdiff_t;
-        using pointer = const T*;
-        using reference = const T&;
+        using pointer = T*;
+        using reference = T&;
+
+        /**
+         * Default constructor.
+         *
+         */
+        Iterator() = default;
 
         /**
          * Construct an iterator with a given pointer.
@@ -101,6 +109,70 @@ public:
         }
 
         /**
+         * Addition operator: it += n.
+         *
+         * @param n The number of elements to add.
+         * @return A new iterator with the added value.
+         */
+        Iterator &operator+=(difference_type n) {
+            _ptr += n;
+            return *this;
+        }
+
+        /**
+         * Subtraction operator: it -= n.
+         *
+         * @param n The number of elements to subtract.
+         * @return A new iterator with the subtracted value.
+         */
+        Iterator &operator-=(difference_type n) {
+            _ptr -= n;
+            return *this;
+        }
+
+        /**
+         * Addition operator: it + n.
+         *
+         * @param n The number of elements to add.
+         * @return A new iterator with the added value.
+         */
+        Iterator operator+(difference_type n) const {
+            return Iterator(_ptr + n);
+        }
+
+        /**
+         * Subtraction operator: it - n.
+         *
+         * @param n The number of elements to subtract.
+         * @return A new iterator with the subtracted value.
+         */
+        Iterator operator-(difference_type n) const {
+            return Iterator(_ptr - n);
+        }
+
+        /**
+         * Addition operator: n + it.
+         *
+         * @param n The number of elements to add.
+         * @param it The iterator to add to.
+         * @return A new iterator with the added value.
+         */
+        friend Iterator operator+(difference_type n, const Iterator& it) {
+            return Iterator(it._ptr + n);
+        }
+
+        /**
+         * Difference operator.
+         *
+         * @param x The first iterator.
+         * @param y The second iterator.
+         * @return The difference between the two iterators.
+         */
+        friend difference_type operator-(const Iterator &x, const Iterator &y) {
+            return x._ptr - y._ptr;
+        }
+
+        /**
          * Dereference operator.
          *
          * @return Reference to the element pointed by the iterator.
@@ -112,44 +184,106 @@ public:
          *
          * @return Pointer to the element pointed by the iterator.
          */
-        T *operator->() { return _ptr; }
+        T *operator->() const { return _ptr; }
+
+        /**
+         * Subscript operator.
+         *
+         * @param idx The index of the element to access with respect to the
+         * iterator.
+         * @return Reference to the element at the given index.
+         */
+        T &operator[] (difference_type idx) const { return _ptr[idx]; }
 
         /**
          * Equality operator.
          *
-         * @param other The other iterator to compare.
-         * @return True if the iterators are equal, false otherwise.
+         * @param x The first iterator.
+         * @param y The second iterator.
+         * @return True if the two iterators are equal, false otherwise.
          */
-        bool operator==(const Iterator &other) const {
-            return _ptr == other._ptr;
+        friend bool operator==(const Iterator &x, const Iterator &y) noexcept {
+            return x._ptr == y._ptr;
         }
 
         /**
          * Inequality operator.
          *
-         * @param other The other iterator to compare.
-         * @return True if the iterators are different, false otherwise.
+         * @param x The first iterator.
+         * @param y The second iterator.
+         * @return True if the two iterators are not equal, false otherwise.
          */
-        bool operator!=(const Iterator &other) const {
-            return _ptr != other._ptr;
+        friend bool operator!=(const Iterator &x, const Iterator &y) noexcept {
+            return !(x == y);
         }
 
-    private:
-        T *_ptr;
-    };
+        /**
+         * Less than operator.
+         *
+         * @param x The first iterator.
+         * @param y The second iterator.
+         * @return True if the first iterator is less than the second, false
+         * otherwise.
+         */
+        friend bool operator<(const Iterator &x, const Iterator &y) noexcept {
+            return x._ptr < y._ptr;
+        }
 
-    using allocator_type = Allocator;
-    using alloc_traits = std::allocator_traits<allocator_type>;
+        /**
+         * Greater than operator.
+         *
+         * @param x The first iterator.
+         * @param y The second iterator.
+         * @return True if the first iterator is greater than the second, false
+         * otherwise.
+         */
+        friend bool operator>(const Iterator &x, const Iterator &y) noexcept {
+            return y < x;
+        }
+
+        /**
+         * Less than or equal to operator.
+         *
+         * @param x The first iterator.
+         * @param y The second iterator.
+         * @return True if the first iterator is less than or equal to the
+         * second, false otherwise.
+         */
+        friend bool operator<=(const Iterator &x, const Iterator &y) noexcept {
+            return !(y < x);
+        }
+
+        /**
+         * Greater than or equal to operator.
+         *
+         * @param x The first iterator.
+         * @param y The second iterator.
+         * @return True if the first iterator is greater than or equal to the
+         * second, false otherwise.
+         */
+        friend bool operator>=(const Iterator &x, const Iterator &y) noexcept {
+            return !(x < y);
+        }
+    private:
+        T *_ptr = nullptr;
+    };
+    static_assert(std::contiguous_iterator<Iterator>);
+
     using value_type = T;
+    using allocator_type = Allocator;
     using size_type = std::ptrdiff_t;
+    using difference_type = std::ptrdiff_t;
     using reference = value_type&;
     using const_reference = const value_type&;
+    using alloc_traits = std::allocator_traits<allocator_type>;
     using pointer = typename alloc_traits::pointer;
     using const_pointer = typename alloc_traits::const_pointer;
-    using realloc_policy = std::function<size_type(size_type, size_type)>;
     using iterator = Iterator;
     using const_iterator = const Iterator;
     using reverse_iterator = std::reverse_iterator<Iterator>;
+    using const_reverse_iterator = std::reverse_iterator<const Iterator>;
+
+    using realloc_policy = std::function<size_type(size_type, size_type)>;
 
     /**
      * Create an empty vector. Both the size and capacity are 0 and there is no
@@ -568,6 +702,21 @@ public:
     const T &operator[](size_type idx) const { return _data[idx]; }
 
     /**
+     * Access operator with bounds checking.
+     *
+     * @return A reference to the element at the given index.
+     */
+    T &at(size_type idx) {
+        if (idx >= _size) {
+            throw std::out_of_range("Vector: index out of range");
+        }
+        return _data[idx];
+    }
+    const T &at(size_type idx) const {
+        return const_cast<T &>(const_cast<const Vector *>(this)->at(idx));
+    }
+
+    /**
      * Reference to the first element of the vector.
      *
      * @return Reference to the first element of the vector.
@@ -629,6 +778,8 @@ public:
 
     /**
      * Swap the contents of the vector with another vector.
+     *
+     * @param other The vector to swap with.
      */
     void swap(Vector &other) {
         std::swap(_realloc_policy, other._realloc_policy);
@@ -640,6 +791,16 @@ public:
         std::swap(_size, other._size);
         std::swap(_capacity, other._capacity);
         std::swap(_data, other._data);
+    }
+
+    /**
+     * Swap the contents of two vectors.
+     *
+     * @param x The first vector to swap.
+     * @param y The second vector to swap.
+     */
+    friend void swap(Vector &x, Vector &y) {
+        x.swap(y);
     }
 private:
     /**
@@ -676,7 +837,11 @@ private:
      * @param size The number of elements to allocate.
      */
     T *allocate_ptr(size_type size) {
-        return (size <= 0) ? nullptr : _alloc.allocate(size);
+        T* data = alloc_traits::allocate(_alloc, size);
+        if (!data) {
+            throw std::bad_alloc();
+        }
+        return data;
     }
 
     /**
@@ -685,7 +850,7 @@ private:
      * @param ptr Pointer to the memory to deallocate.
      */
     void deallocate_ptr(T **ptr) {
-        _alloc.deallocate(*ptr, _capacity);
+        alloc_traits::deallocate(_alloc, *ptr, _capacity);
         *ptr = nullptr;
     }
 
