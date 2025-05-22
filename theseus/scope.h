@@ -20,6 +20,16 @@ public:
     // using JumpsPos = ManualCapacityVector<int32_t>;
 
     /**
+     * @brief Struct representing a range of values
+     *
+     */
+    struct range {
+        int32_t start;
+        int32_t end;
+    };
+
+
+    /**
      * @brief Construct a new Scope object
      *
      * @param nscores Number of scores in the scope
@@ -106,9 +116,9 @@ public:
      * @brief Get the data from the vector of M positions at score "score".
      *
      * @param score
-     * @return std::vector<int32_t>&
+     * @return std::vector<range>&
      */
-    std::vector<int32_t> &m_pos(int score) {
+    std::vector<range> &m_pos(int score) {
         return _squeue[score%_squeue.size()]._m_pos;
     }
 
@@ -116,9 +126,9 @@ public:
      * @brief Get the data from the vector of I positions at score "score".
      *
      * @param score
-     * @return std::vector<int32_t>&
+     * @return std::vector<range>&
      */
-    std::vector<int32_t> &i_pos(int score) {
+    std::vector<range> &i_pos(int score) {
         return _squeue[score%_squeue.size()]._i_pos;
     }
 
@@ -126,9 +136,9 @@ public:
      * @brief Get the data from the vector of I2 positions at score "score".
      *
      * @param score
-     * @return std::vector<int32_t>&
+     * @return std::vector<range>&
      */
-    std::vector<int32_t> &i2_pos(int score) {
+    std::vector<range> &i2_pos(int score) {
         return _squeue[score%_squeue.size()]._i2_pos;
     }
 
@@ -136,9 +146,9 @@ public:
      * @brief Get the data from the vector of D positions at score "score".
      *
      * @param score
-     * @return std::vector<int32_t>&
+     * @return std::vector<range>&
      */
-    std::vector<int32_t> &d_pos(int score) {
+    std::vector<range> &d_pos(int score) {
         return _squeue[score%_squeue.size()]._d_pos;
     }
 
@@ -146,9 +156,9 @@ public:
      * @brief Get the data from the vector of D2 positions at score "score".
      *
      * @param score
-     * @return std::vector<int32_t>&
+     * @return std::vector<range>&
      */
-    std::vector<int32_t> &d2_pos(int score) {
+    std::vector<range> &d2_pos(int score) {
         return _squeue[score%_squeue.size()]._d2_pos;
     }
 
@@ -160,13 +170,13 @@ private:
         std::vector<Cell> _i2_wf;
         std::vector<Cell> _d2_wf;
 
-        std::vector<int32_t> _m_pos;
+        std::vector<range> _m_pos;
 
-        std::vector<int32_t> _i_pos;
-        std::vector<int32_t> _i2_pos;
+        std::vector<range> _i_pos;
+        std::vector<range> _i2_pos;
 
-        std::vector<int32_t> _d_pos;
-        std::vector<int32_t> _d2_pos;
+        std::vector<range> _d_pos;
+        std::vector<range> _d2_pos;
 
         void reserve(int new_capacity) {
             _i_wf.reserve(new_capacity);

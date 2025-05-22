@@ -28,7 +28,11 @@ struct Cell {
     using pos_t = int32_t;
     using score_t = int32_t;
 
-    using Wavefront = Vector<Cell, true, MemPoolAllocator<Cell>>;
+    // enum class edit_t : int8_t {
+    //     None,
+    //     M,
+    //     Ins,
+    //     Del};
 
     enum class Matrix : int8_t {
         None,

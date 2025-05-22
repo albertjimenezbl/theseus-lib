@@ -171,17 +171,17 @@ int main(int argc, char *const *argv) {
         // }
 
         // Check if all sequences match perfectly
-        // for (int l = 0; l < j; ++l) {
-        //     dummy_alg = aligner.align(sequences[j]);
-        //     if (dummy_alg.score != 0) {
-        //         // for (int l = 0; l < dummy_alg.cigar.edit_op.size(); ++l) {
-        //         //     std::cout << dummy_alg.cigar.edit_op[l] << " ";
-        //         // }
-        //         // std::cout << std::endl;
-        //         std::cerr << "Error: The alignment score in sequence " << j << " is: " << dummy_alg.score << "not zero." << std::endl;
-        //         return 1;
-        //     }
-        // }
+        for (int l = 0; l < j; ++l) {
+            dummy_alg = aligner.align(sequences[j]);
+            if (dummy_alg.score != 0) {
+                // for (int l = 0; l < dummy_alg.cigar.edit_op.size(); ++l) {
+                //     std::cout << dummy_alg.cigar.edit_op[l] << " ";
+                // }
+                // std::cout << std::endl;
+                std::cerr << "Error: The alignment score in sequence " << j << " is: " << dummy_alg.score << "not zero." << std::endl;
+                return 1;
+            }
+        }
         std::cout << "Score = " << alignments[j].score << std::endl << std::endl;
     }
 

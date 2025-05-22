@@ -67,11 +67,10 @@ private:
      * @param new_score_diff
      * @param prev_matrix
      */
-    void sparsify_M_data(Cell::Wavefront &dense_wf,
+    void sparsify_M_data(BeyondScope::DenseWavefront &dense_wf,
                          int offset_increase,
                          int shift_factor,
-                         int start_idx,
-                         int end_idx,
+                         Scope::range cells_range,
                          int m,
                          int upper_bound,
                          int new_score_diff);
@@ -92,14 +91,14 @@ private:
      * @param new_score_diff
      * @param prev_matrix
      */
-    void sparsify_jumps_data(Cell::Wavefront &dense_wf,
+    void sparsify_jumps_data(BeyondScope::DenseWavefront &dense_wf,
                              std::vector<int> &jumps_positions,
                              int offset_increase,
                              int shift_factor,
                              int m,
                              int upper_bound,
                              int new_score_diff,
-                             Cell::Matrix prev_matrix);
+                             Cell::Matrix from_matrix);
 
     /**
      * @brief Sparsify the indel (coming from I or D) data. This means storing
@@ -120,8 +119,7 @@ private:
     void sparsify_indel_data(std::vector<Cell> &dense_wf,
                              int offset_increase,
                              int shift_factor,
-                             int start_idx,
-                             int end_idx,
+                             Scope::range cells_range,
                              int m,
                              int upper_bound,
                              int added_score_diff);
@@ -174,7 +172,7 @@ private:
     void store_M_jump(Graph::vertex *curr_v,
                       Cell &prev_cell,
                       int prev_pos,
-                      Cell::Matrix prev_matrix,
+                      Cell::Matrix from_matrix,
                       int _score_diff);
 
     /**
@@ -189,7 +187,7 @@ private:
     void store_I_jump(Graph::vertex *curr_v,
                       Cell &prev_cell,
                       int prev_pos,
-                      Cell::Matrix prev_matrix);
+                      Cell::Matrix from_matrix);
 
     /**
      * @brief Check and store I jumps (that is, those diagonals that have reached
@@ -203,8 +201,7 @@ private:
      */
     void check_and_store_jumps(Graph::vertex *curr_v,
                                std::vector<Cell> &curr_wavefront,
-                               int start_idx,
-                               int end_idx);
+                               Scope::range cell_range);
 
     /**
      * @brief Longest Common Prefix of two sequences.
@@ -244,7 +241,7 @@ private:
                          int v,
                          Cell &prev_cell,
                          int prev_pos,
-                         Cell::Matrix prev_matrix);
+                         Cell::Matrix from_matrix);
 
     /**
      * @brief Add matches to our backtracking vector.
