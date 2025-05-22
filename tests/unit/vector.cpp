@@ -279,7 +279,7 @@ TEST_CASE("Test vector resize") {
     constexpr int size = 500;
 
     SUBCASE("Resize with bound check") {
-        theseus::Vector<POD> v;
+        theseus::Vector<POD, true> v;
         v.realloc(size);
 
         try {
@@ -290,7 +290,7 @@ TEST_CASE("Test vector resize") {
         }
     }
     SUBCASE("Resize without bound check") {
-        theseus::Vector<POD> v;
+        theseus::Vector<POD, true> v;
         v.realloc(size);
 
         // This leaves the vector in an invalid state.

@@ -398,7 +398,8 @@ public:
 
         destroy_elements(_data, _size);
 
-        constexpr bool propagate_alloc = alloc_traits::propagate_on_container_copy_assignment::value;
+        constexpr bool propagate_alloc =
+            alloc_traits::propagate_on_container_copy_assignment::value;
         const bool reallocate = (propagate_alloc && _alloc != other._alloc) ||
                                 _capacity != other._capacity;
 
@@ -496,7 +497,7 @@ public:
      * than or equal to the current size of the vector and greater than or equal
      * to 0.
      *
-     * If new_capacity != _capacity, then all iterators and references to the
+     * If new_capacity != capacity(), then all iterators and references to the
      * elements are invalidated.
      *
      * @param new_capacity The new capacity of the vector.
@@ -912,7 +913,7 @@ private:
                                        std::is_standard_layout_v<T> &&
                                        std::is_trivial_v<T>;
 
-    static constexpr bool noexcept_move_assign = 
+    static constexpr bool noexcept_move_assign =
         alloc_traits::propagate_on_container_move_assignment::value ||
         alloc_traits::is_always_equal::value;
     static constexpr bool noexcept_swap =
@@ -974,7 +975,8 @@ private:
     }
 
     /**
-     * Default construct @p n elements starting at pointer @p pdst.
+     * Default construct @p n elements starting at pointer @p pdst. In case
+     * avoid_init is true, this function does nothing.
      *
      * @param pdst The pointer to the first element to initialize.
      * @param n The number of elements to initialize.
@@ -1027,12 +1029,13 @@ private:
     }
 
     /**
-     * Destroy @p n elements starting at pointer @p pdst.
+     * Destroy @p n elements starting at pointer @p pdst. In case avoid_init
+     * is true, this function does nothing.
      *
      * @param pdst The pointer to the first element to destroy.
      * @param n The number of elements to destroy.
      */
-    void destroy_elements(T* pdst, size_type n) {
+    void destroy_elements(T* pdst, size_type n) noexcept(avoid_init) {
         if constexpr (avoid_init) {
             return;
         }
