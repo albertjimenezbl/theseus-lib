@@ -544,7 +544,7 @@ public:
                     realloc(other.capacity());
                 }
 
-                _size = 0;
+                _size = other.size();
 
                 move_construct_elements(begin(), end(), other.begin());
             }
