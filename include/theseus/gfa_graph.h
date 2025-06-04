@@ -28,7 +28,9 @@ namespace theseus {
 
         GfaGraph(std::string_view filename);
         GfaGraph(std::istream& stream);
+        GfaGraph(std::istream &gfa_stream, std::string &sequence, int &start_node, int &start_offset);
         void LoadFromStream(std::istream &gfa_stream);
+        void LoadGraphandSeqFromStream(std::istream &gfa_file, std::string &sequence, int &start_node, int &start_offset);
         std::string OriginalNodeName(int nodeId) const;
         size_t getNameId(const std::string &name);
 

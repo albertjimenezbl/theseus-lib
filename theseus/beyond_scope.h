@@ -42,8 +42,18 @@ public:
     void new_alignment() {
         _m_wf.clear();
         _m_jumps_wf.clear();
+        _i_jumps_wf.clear();
     }
 
+    /**
+     * @brief Access the i_jumps wavefront
+     *
+     * @param score
+     * @return Cell::Wavefront&
+     */
+    DenseWavefront &i_jumps_wf() {
+        return _i_jumps_wf;
+    }
 
     /**
      * @brief Access the m_jumps wavefront
@@ -84,7 +94,9 @@ private:
     // };
 
     DenseWavefront _m_wf; // Backtrace wavefront
-    DenseWavefront _m_jumps_wf; // Backtrace wavefront
+    DenseWavefront _m_jumps_wf;  // Backtrace wavefront
+    DenseWavefront _i_jumps_wf;  // Backtrace wavefront
+    DenseWavefront _i2_jumps_wf; // Backtrace wavefront
 };
 
 } // namespace theseus

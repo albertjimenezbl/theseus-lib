@@ -28,15 +28,21 @@ public:
                        bool score_only);
 
     // TODO:
-    Alignment align(std::string seq);
+    Alignment align(std::string seq, int start_node = 0, int start_offset = 0);
+
+    /**
+     * @brief Ouput the POA graph in fasta format
+     *
+     * @param output_file
+     */
+    void output_msa_as_fasta(const std::string &output_file);
 
 private:
     /**
      * @brief Initialize the data for a new alignment.
      *
-     * @param start_vtx
      */
-    void new_alignment(int start_vtx);
+    void new_alignment();
 
     /**
      * @brief Process a given vertex with a given _score. This means performing
@@ -74,8 +80,7 @@ private:
                          int shift_factor,
                          Scope::range cells_range,
                          int m,
-                         int upper_bound,
-                         Cell::edit_t edit_op);
+                         int upper_bound);
 
     /**
      * @brief Sparsify the jumps data. This means storing the data in the scratchpad
@@ -99,8 +104,7 @@ private:
                              int shift_factor,
                              int m,
                              int upper_bound,
-                             Cell::Matrix from_matrix,
-                             Cell::edit_t edit_op);
+                             Cell::Matrix from_matrix);
 
     /**
      * @brief Sparsify the indel (coming from I or D) data. This means storing
@@ -123,8 +127,7 @@ private:
                              int shift_factor,
                              Scope::range cells_range,
                              int m,
-                             int upper_bound,
-                             Cell::edit_t edit_op);
+                             int upper_bound);
 
     /**
      * @brief Compute the next I matrix for a vertex v. This implies both sparsifying
@@ -174,8 +177,7 @@ private:
     void store_M_jump(Graph::vertex *curr_v,
                       Cell &prev_cell,
                       int prev_pos,
-                      Cell::Matrix from_matrix,
-                      Cell::edit_t edit_op);
+                      Cell::Matrix from_matrix);
 
     /**
      * @brief Invalidate the diagonal associated to a jump in I, activate the newly
@@ -188,7 +190,8 @@ private:
      */
     void store_I_jump(Graph::vertex *curr_v,
                       Cell &prev_cell,
-                      int prev_pos);
+                      int prev_pos,
+                      Cell::Matrix from_matrix);
 
     /**
      * @brief Check and store I jumps (that is, those diagonals that have reached
@@ -294,15 +297,6 @@ private:
      */
     void add_to_graph(std::string seq);
 
-    /**
-     * @brief Implementation of Dijkstra's algorithm to find the shortest path
-     * between two vertices in a graph.
-     *
-     * @param source // Source vertex
-     * @param sink  // Sink vertex
-     */
-    void dijkstra(int source, int sink, int offset_source, int offset_sink);
-
     int32_t _score = 0;
 
     Penalties _penalties;
@@ -316,6 +310,8 @@ private:
     bool _end = false;
     int _end_vertex;
     int _seq_ID = 0;
+    int _start_node;
+    int _start_offset;
     Cell _start_pos;
 
     std::unique_ptr<ScratchPad> _scratchpad;   // TODO: Scratchpad inside scope?

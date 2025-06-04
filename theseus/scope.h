@@ -93,16 +93,6 @@ public:
     }
 
     /**
-     * @brief Get the data from the wavefront I_jumps of score "score".
-     *
-     * @param score
-     * @return std::vector<Cell>&
-     */
-    std::vector<Cell> &i_jumps_wf(int score) {
-        return _squeue[score%_squeue.size()]._i_jumps_wf;
-    }
-
-    /**
      * @brief Get the data from the wavefront I2 of score "score".
      *
      * @param score
@@ -176,8 +166,6 @@ private:
     struct ScoreData {
         std::vector<Cell> _i_wf;
         std::vector<Cell> _d_wf;
-
-        std::vector<Cell> _i_jumps_wf;
 
         std::vector<Cell> _i2_wf;
         std::vector<Cell> _d2_wf;

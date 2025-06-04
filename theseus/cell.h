@@ -25,7 +25,7 @@ constexpr ptrdiff_t realloc_wavefront_policy(std::ptrdiff_t capacity,
 struct Cell {
     using vertex_t = int32_t; // TODO: This should be here?
     using idx2d_t = int32_t;
-    using pos_t = int32_t;
+    using pos_t = int64_t;
     using score_t = int32_t;
 
     enum class edit_t : int8_t {
@@ -46,11 +46,10 @@ struct Cell {
         D2
     };
 
+    pos_t prev_pos;
     vertex_t vertex_id;
     idx2d_t offset;
     idx2d_t diag;
-    pos_t prev_pos;
-    edit_t edit_op;
     Matrix from_matrix;
 };
 

@@ -26,6 +26,7 @@ struct CMDArgs {
     int gapo = 3;
     int gape = 1;
     std::string sequences_file;
+    std::string output_file = "msa_output.fasta"; // Default output file for the MSA
 };
 
 /**
@@ -96,7 +97,8 @@ void help() {
                  "  -x, --mismatch <int>    The mismatch penalty [default=2]\n"
                  "  -o, --gapo <int>        The gap open penalty [default=3]\n"
                  "  -e, --gape <int>        The gap extension penalty [default=1]\n"
-                 "  -s, --sequences <file>  Dataset file\n";
+                 "  -s, --sequences <file>  Dataset file\n"
+                 "  -f, --output <file>     Output file for the MSA\n";
 }
 
 CMDArgs parse_args(int argc, char *const *argv) {
@@ -105,13 +107,14 @@ CMDArgs parse_args(int argc, char *const *argv) {
                                           {"gapo", required_argument, 0, 'o'},
                                           {"gape", required_argument, 0, 'e'},
                                           {"sequences", required_argument, 0, 's'},
+                                          {"output", required_argument, 0, 'f'},
                                           {0, 0, 0, 0}};
 
     CMDArgs args;
 
     int opt;
     int option_index = 0;
-    while ((opt = getopt_long(argc, argv, "m:x:o:e:s:", long_options, &option_index)) != -1) {
+    while ((opt = getopt_long(argc, argv, "m:x:o:e:s:f:", long_options, &option_index)) != -1) {
         switch (opt) {
             case 'o':
                 args.gapo = std::stoi(optarg);
@@ -127,6 +130,9 @@ CMDArgs parse_args(int argc, char *const *argv) {
                 break;
             case 's':
                 args.sequences_file = optarg;
+                break;
+            case 'f':
+                args.output_file = optarg;
                 break;
             default:
                 std::cerr << "Invalid option" << std::endl;
@@ -184,6 +190,9 @@ int main(int argc, char *const *argv) {
         // }
         std::cout << "Score = " << alignments[j].score << std::endl << std::endl;
     }
+
+    // Output the MSA in fasta format
+    aligner.output_msa_as_fasta(args.output_file);
 
     return 0;
 }

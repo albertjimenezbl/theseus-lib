@@ -49,8 +49,13 @@ TheseusAligner::TheseusAligner(const Penalties &penalties,
 TheseusAligner::~TheseusAligner() {}
 
 // TODO:
-Alignment TheseusAligner::align(std::string seq) {
-    return _aligner_impl->align(seq);
+Alignment TheseusAligner::align(std::string seq, int start_node, int start_offset) {
+    return _aligner_impl->align(seq, start_node, start_offset);
+}
+
+// TODO:
+void TheseusAligner::output_msa_as_fasta(const std::string &output_file) {
+    _aligner_impl->output_msa_as_fasta(output_file);
 }
 
 } // namespace theseus

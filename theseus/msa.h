@@ -2,6 +2,8 @@
 
 #include <vector>
 #include <string>
+#include <stack>
+#include <fstream>
 
 #include "graph.h"
 #include "../include/theseus/alignment.h"
@@ -386,6 +388,7 @@ namespace theseus {
             source_edge.source = 0;
             source_edge.destination = 1;
             source_edge.weight = 1;
+            source_edge.sequence_IDs.push_back(0); // Sequence ID 0
             _poa_edges.push_back(source_edge);
 
             // Central vertices
@@ -400,6 +403,7 @@ namespace theseus {
                 new_edge.source = _poa_vertices.size() - 1;
                 new_edge.destination = _poa_vertices.size();
                 new_edge.weight = 1;
+                new_edge.sequence_IDs.push_back(0); // Sequence ID 0
                 _poa_edges.push_back(new_edge);
             }
 
@@ -410,6 +414,132 @@ namespace theseus {
             _poa_vertices.push_back(sink_v);
 
             _end_vtx_poa = _poa_vertices.size() - 1; // Set the end vertex
+        }
+
+        /**
+         * @brief Convert the POA graph to a FASTA file (MSA format)
+         *
+         * @param output_file
+         */
+        void poa_to_fasta(int num_sequences, const std::string &output_file) {
+            // Create an augmented graph to ensure MSA integrity
+            POAGraph augmented_poa_graph;
+            augmented_poa_graph._poa_vertices = _poa_vertices;
+            augmented_poa_graph._poa_edges = _poa_edges;
+
+            // Given an edge e = (v1, v2), add an extra edge per aliged pair of
+            // the aligned nodes to v1 and v2. That is, new_e = (w1, w2) where
+            // w1 and w2 are aligned nodes to v1 and v2, respectively.
+            int num_original_edges = augmented_poa_graph._poa_edges.size();
+            for (int l = 0; l < num_original_edges; ++l) {
+                POAEdge &edge = augmented_poa_graph._poa_edges[l];
+
+                // For each edge, add an extra edge for each aligned pair
+                POAVertex &source_vertex = augmented_poa_graph._poa_vertices[edge.source];
+                POAVertex &destination_vertex = augmented_poa_graph._poa_vertices[edge.destination];
+                for (int i = 0; i < source_vertex.associated_vtxs.size(); ++i) {
+                    int aligned_source = source_vertex.associated_vtxs[i];
+
+                    for (int j = 0; j < destination_vertex.associated_vtxs.size(); ++j) {
+                        int aligned_destination = destination_vertex.associated_vtxs[j];
+
+                        // Create a new edge between the aligned nodes
+                        POAEdge new_edge;
+                        new_edge.source = aligned_source;
+                        new_edge.destination = aligned_destination;
+                        augmented_poa_graph._poa_edges.push_back(new_edge);
+
+                        // Add the information to the vertices
+                        augmented_poa_graph._poa_vertices[aligned_source].out_edges.push_back(augmented_poa_graph._poa_edges.size() - 1);
+                        augmented_poa_graph._poa_vertices[aligned_destination].in_edges.push_back(augmented_poa_graph._poa_edges.size() - 1);
+                    }
+                }
+            }
+
+            // Topologically order the vertices using DFS
+            std::vector<bool> visited(augmented_poa_graph._poa_vertices.size(), false);
+            std::stack<int> topo_stack;
+
+            // Recursive dfs
+            std::function<void(int)> dfs = [&](int v) {
+                visited[v] = true;
+                for (int edge_idx : augmented_poa_graph._poa_vertices[v].out_edges) {
+                    int next_v = augmented_poa_graph._poa_edges[edge_idx].destination;
+                    if (!visited[next_v]) {
+                        dfs(next_v);
+                    }
+                }
+                topo_stack.push(v);
+            };
+
+            // Perform DFS for all vertices starting in the source vertex
+            dfs(0);
+
+            // Reverse the stack to get the topological order
+            std::vector<int> topological_order;
+            while (!topo_stack.empty()) {
+                topological_order.push_back(topo_stack.top());
+                topo_stack.pop();
+            }
+
+            // Determine the columns of the nodes in the MSA representation
+            std::vector<int> node_to_column(augmented_poa_graph._poa_vertices.size(), -1);
+            int column_index = 0;
+            for (int v : topological_order) {
+                // Check aligned nodes
+                POAVertex &vertex = augmented_poa_graph._poa_vertices[v];
+                int min_aligned = -1;
+                for (int aligned_v : vertex.associated_vtxs) {
+                    if (node_to_column[aligned_v] != -1) {
+                        min_aligned = node_to_column[aligned_v];
+                    }
+                }
+
+                if (min_aligned != -1) {
+                    node_to_column[v] = min_aligned; // Assign the column of the aligned node
+                } else {
+                    node_to_column[v] = column_index; // Assign a new column
+                    column_index += 1;
+                }
+            }
+
+            // Write the MSA in FASTA format
+            int columns = column_index - 2; // Number of columns in the MSA
+            int rows = num_sequences + 1; // Number of sequences
+            std::vector<std::vector<char>> msa(rows, std::vector<char>(columns, '-'));
+
+            // Fill the MSA with the aligned sequences (except first and last nodes)
+            for (int l = 1; l < _poa_vertices.size() - 1; ++l) {
+                POAVertex &vertex = augmented_poa_graph._poa_vertices[l];
+                int column = node_to_column[l];
+
+                // Check all incoming edges to fill the MSA
+                for (int edge_idx : vertex.in_edges) {
+                    POAEdge &edge = augmented_poa_graph._poa_edges[edge_idx];
+
+                    // Find the sequence IDs of the edge
+                    for (int l = 0; l < edge.sequence_IDs.size(); ++l) {
+                        int seq_id = edge.sequence_IDs[l];
+
+                        // Fill the MSA with the value of the vertex
+                        msa[seq_id][column] = vertex.value;
+                    }
+                }
+            }
+
+            // Print the result in the output file
+            std::ofstream out_file(output_file);
+            if (!out_file.is_open()) {
+                throw std::runtime_error("Could not open output file for writing MSA.");
+            }
+            for (int i = 0; i < rows; ++i) {
+                out_file << ">Sequence_" << i + 1 << " "; // Sequence ID
+                for (int j = 0; j < columns; ++j) {
+                    out_file << msa[i][j];
+                }
+                out_file << "\n"; // New line after each sequence
+            }
+            out_file.close();
         }
     };
 }

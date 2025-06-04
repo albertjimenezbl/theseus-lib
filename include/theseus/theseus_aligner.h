@@ -30,7 +30,10 @@ public:
     ~TheseusAligner();
 
     // TODO:
-    Alignment align(std::string seq);
+    Alignment align(std::string seq, int start_node = 0, int start_offset = 0);
+
+    // TODO:
+    void output_msa_as_fasta(const std::string &output_file);
 
 private:
     std::unique_ptr<TheseusAlignerImpl> _aligner_impl;
