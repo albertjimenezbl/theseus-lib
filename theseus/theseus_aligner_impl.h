@@ -300,6 +300,7 @@ private:
     int32_t _score = 0;
 
     Penalties _penalties;
+    InternalPenalties _internal_penalties;
 
     Graph _graph;   // TODO:
 

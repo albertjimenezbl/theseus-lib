@@ -58,3 +58,6 @@ datasets*
 
 # State of the art
 SOTA/*
+
+# Results
+results/*

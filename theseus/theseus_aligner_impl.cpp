@@ -8,17 +8,19 @@ TheseusAlignerImpl::TheseusAlignerImpl(const Penalties &penalties,
                                        bool score_only) : _penalties(penalties),
                                                           _graph(std::move(graph)),
                                                           _is_msa(msa),
-                                                          _is_score_only(score_only) {
+                                                          _is_score_only(score_only),
+                                                          _internal_penalties(penalties) {
     // TODO: Gap-linear, gap-affine and dual affine-gap.
-    const auto n_scores = std::max({penalties.gapo() +_penalties.gape(),
-                                  _penalties.gapo() +_penalties.gape(),
-                                  _penalties.mism()}) + 1;
+    const auto n_scores = std::max({penalties.gapo() +_internal_penalties.gape(),
+                                  _internal_penalties.gapo() +_internal_penalties.gape(),
+                                  _internal_penalties.mism()}) + 1;
 
     if (_is_msa) {
       _poa_graph = std::make_unique<POAGraph>();
       _poa_graph->create_initial_graph(_graph);
     }
 
+    _internal_penalties = InternalPenalties(penalties);
     _scope = std::make_unique<Scope>(n_scores);
     _beyond_scope = std::make_unique<BeyondScope>();
     constexpr int expected_nvertices = std::max(1024, 0); // TODO: Set the expected number of vertices
@@ -280,7 +282,7 @@ Alignment TheseusAlignerImpl::align(std::string seq, int start_node, int start_o
   {
 
     // Sparsify data (put it in the scratch pad)
-    int pos_prev_M = _score - (_penalties.gapo() + _penalties.gape()), pos_prev_I = _score - _penalties.gape(), pos_prev_M_scope = _vertices_data->get_pos(pos_prev_M);
+    int pos_prev_M = _score - (_internal_penalties.gapo() + _internal_penalties.gape()), pos_prev_I = _score - _internal_penalties.gape(), pos_prev_M_scope = _vertices_data->get_pos(pos_prev_M);
     int pos_prev_I_scope = _vertices_data->get_pos(pos_prev_I);
 
     // Come from an Insertion
@@ -326,7 +328,7 @@ void TheseusAlignerImpl::next_D(int upper_bound,
 {
 
   // Sparsify data (put it in the scratch pad)
-  int pos_prev_M = _score - (_penalties.gapo() + _penalties.gape()), pos_prev_D = _score - _penalties.gape(), pos_prev_M_scope = _vertices_data->get_pos(pos_prev_M);
+  int pos_prev_M = _score - (_internal_penalties.gapo() + _internal_penalties.gape()), pos_prev_D = _score - _internal_penalties.gape(), pos_prev_M_scope = _vertices_data->get_pos(pos_prev_M);
 
   // Come from a Deletion
   if (pos_prev_D >= 0 && _scope->d_pos(pos_prev_D).size() > _vertices_data->get_id(v))
@@ -363,7 +365,7 @@ void TheseusAlignerImpl::next_M(int upper_bound,
                                 int v) {
 
   // Sparsify data (put it in the scratch pad)
-  int pos_prev_M = _score - _penalties.mism(), pos_prev_D = _score, pos_prev_I = _score, pos_prev_M_scope = _vertices_data->get_pos(pos_prev_M);
+  int pos_prev_M = _score - _internal_penalties.mism(), pos_prev_D = _score, pos_prev_I = _score, pos_prev_M_scope = _vertices_data->get_pos(pos_prev_M);
 
   // Come from a Deletion
   if (_scope->d_pos(pos_prev_D).size() > _vertices_data->get_id(v))  {

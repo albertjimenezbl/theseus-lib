@@ -11,24 +11,85 @@
 namespace theseus {
 
 class InternalPenalties {
-// public:
-//     InternalPenalties(Penalties penalties);
+public:
+    using penalty_t = Penalties::penalty_t;
 
-//     // Substitute gape() for ins() and del().
-//     penalty_t ins() = delete;
-//     penalty_t del() = delete;
-//     // penalty_t gape() = delete;
-//     penalty_t gapo2() = delete;
+    InternalPenalties(Penalties penalties) {
+        // Transform penalties in an Eizenga fashion
+        if (penalties.match() != 0) {
+            _match = 0;
+            _mismatch = 2*penalties.mism() - 2*penalties.match();
+            _gapo = 2*penalties.gapo();
+            _gape = 2*penalties.gape() - penalties.match();
+        }
+        else {
+            _match = penalties.match();
+            _mismatch = penalties.mism();
+            _gapo = penalties.gapo();
+            _gape = penalties.gape();
+        }
+    }
 
-// private:
-//     // Diagonal penalties
-//     penalty_t match;
-//     penalty_t mismatch;
+    /**
+     * Get the match score.
+     *
+     * @return The match score.
+     */
+    penalty_t match() const { return _match; }
 
-//     // Gap penalties
-//     penalty_t gapo;
-//     penalty_t ins;
-//     penalty_t del;
+    /**
+     * Get the mismatch score.
+     *
+     * @return The mismatch score.
+     */
+    penalty_t mism() const { return _mismatch; }
+
+    /**
+     * Get the gap open penalty if the gap type is affine or dual affine.
+     * Otherwise, return 0.
+     *
+     * @return The gap open penalty if the gap type is affine or dual affine.
+     * Otherwise, return 0.
+     */
+    penalty_t gapo() const { return _gapo; }
+
+    /**
+     * Get the gap extension penalty.
+     *
+     * @return The gap extension penalty.
+     */
+    penalty_t gape() const { return _gape; }
+
+    /**
+     * Get the second gap open penalty if the gap type is dual affine.
+     * Otherwise, return 0.
+     *
+     * @return The gap open penalty if the gap type is dual affine. Otherwise,
+     * return 0.
+     */
+    penalty_t gapo2() const { return _gapo2; }
+
+    /**
+     * Get the second gap extension penalty if the gap type is dual affine.
+     * Otherwise, return 0.
+     *
+     * @return The gap extension penalty if the gap type is dual affine.
+     * Otherwise, return 0.
+     */
+    penalty_t gape2() const { return _gape; }
+
+private:
+    // Diagonal penalties
+    penalty_t _match;
+    penalty_t _mismatch;
+
+    // Affine gap penalties
+    penalty_t _gapo;
+    penalty_t _gape;
+
+    // Dual affine gap penalties
+    penalty_t _gapo2;
+    penalty_t _gape2;
 };
 
 } // namespace theseus
