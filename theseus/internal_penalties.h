@@ -28,6 +28,21 @@ public:
             _gapo = penalties.gapo();
             _gape = penalties.gape();
         }
+
+        if (penalties.match() > penalties.mism()) {
+            throw std::invalid_argument("The match penalty must be less than the mismatch penalty");
+        }
+        else if (penalties.match() > penalties.gapo()) {
+            throw std::invalid_argument("The match penalty must be less than or equal to the gap open penalty.");
+        }
+        else if (penalties.match() > penalties.gape()) {
+            throw std::invalid_argument("The match penalty must be less than or equal to the gap extend penalty.");
+        }
+        else if (penalties.gapo() < penalties.gape()) {
+            throw std::invalid_argument("The gap open penalty must be greater than or equal to the gap extension penalty.");
+        }
+
+        // TODO: Control for dual affine penalties
     }
 
     /**

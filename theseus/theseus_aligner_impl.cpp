@@ -171,7 +171,7 @@ Alignment TheseusAlignerImpl::align(std::string seq, int start_node, int start_o
 }
 
   // Sparsify M data
-  void TheseusAlignerImpl::sparsify_M_data(BeyondScope::DenseWavefront & dense_wf,
+  void TheseusAlignerImpl::sparsify_M_data(Cell::CellVector & dense_wf,
                                            int offset_increase,
                                            int shift_factor,
                                            Scope::range cells_range,
@@ -206,7 +206,7 @@ Alignment TheseusAlignerImpl::align(std::string seq, int start_node, int start_o
   }
 
   // Sparsify jumps data
-  void TheseusAlignerImpl::sparsify_jumps_data(BeyondScope::DenseWavefront & dense_wf,
+  void TheseusAlignerImpl::sparsify_jumps_data(Cell::CellVector & dense_wf,
                                                std::vector<int> & jumps_positions,
                                                int offset_increase,
                                                int shift_factor,
@@ -242,7 +242,7 @@ Alignment TheseusAlignerImpl::align(std::string seq, int start_node, int start_o
   }
 
   // Sparsify indel
-  void TheseusAlignerImpl::sparsify_indel_data(BeyondScope::DenseWavefront & dense_wf,
+  void TheseusAlignerImpl::sparsify_indel_data(Cell::CellVector & dense_wf,
                                                int offset_increase,
                                                int shift_factor,
                                                Scope::range cells_range,
@@ -468,7 +468,7 @@ void TheseusAlignerImpl::store_I_jump(Graph::vertex* curr_v,
 
 // Check and store I jumps (that is, those diagonals that have reached the last column of a vertex)
 void TheseusAlignerImpl::check_and_store_jumps(Graph::vertex *curr_v,
-                                               std::vector<Cell> &curr_wavefront,
+                                               Cell::CellVector &curr_wavefront,
                                                Scope::range cell_range)
 {
 
@@ -641,6 +641,10 @@ void TheseusAlignerImpl::backtrace(int initial_vertex)
 
 
 void TheseusAlignerImpl::output_msa_as_fasta(const std::string &output_file) {
+    if (!_is_msa) {
+        throw std::runtime_error("Cannot output MSA as FASTA when not in MSA mode.");
+    }
+
     _poa_graph->poa_to_fasta(_seq_ID, output_file);
 }
 

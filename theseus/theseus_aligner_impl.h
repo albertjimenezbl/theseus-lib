@@ -75,7 +75,7 @@ private:
      * @param new_score_diff
      * @param prev_matrix
      */
-    void sparsify_M_data(BeyondScope::DenseWavefront &dense_wf,
+    void sparsify_M_data(Cell::CellVector &dense_wf,
                          int offset_increase,
                          int shift_factor,
                          Scope::range cells_range,
@@ -98,7 +98,7 @@ private:
      * @param new_score_diff
      * @param prev_matrix
      */
-    void sparsify_jumps_data(BeyondScope::DenseWavefront &dense_wf,
+    void sparsify_jumps_data(Cell::CellVector &dense_wf,
                              std::vector<int> &jumps_positions,
                              int offset_increase,
                              int shift_factor,
@@ -122,7 +122,7 @@ private:
      * @param new_score_diff
      * @param prev_matrix
      */
-    void sparsify_indel_data(std::vector<Cell> &dense_wf,
+    void sparsify_indel_data(Cell::CellVector &dense_wf,
                              int offset_increase,
                              int shift_factor,
                              Scope::range cells_range,
@@ -204,7 +204,7 @@ private:
      * @param v
      */
     void check_and_store_jumps(Graph::vertex *curr_v,
-                               std::vector<Cell> &curr_wavefront,
+                               Cell::CellVector &curr_wavefront,
                                Scope::range cell_range);
 
     /**

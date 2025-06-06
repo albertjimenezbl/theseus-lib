@@ -23,6 +23,8 @@ constexpr ptrdiff_t realloc_wavefront_policy(std::ptrdiff_t capacity,
 // WARNING: We want Cell to be a simple struct so it is standard layout and
 // trivial. This way, resizes of Vector<Cell> are free.
 struct Cell {
+    using CellVector = Vector<Cell, true>;
+
     using vertex_t = int32_t; // TODO: This should be here?
     using idx2d_t = int32_t;
     using pos_t = int64_t;
