@@ -162,6 +162,9 @@ Alignment TheseusAlignerImpl::align(std::string seq, int start_node, int start_o
   _seq_ID += 1;
   backtrace(0);
 
+  // Compute the scores with the original penalties
+  _alignment.score = _penalties.compute_affine_gap_score(_alignment.cigar);
+
   // Update the graph in case of MSA
   if (_is_msa) {
       _poa_graph->add_alignment_poa(_graph, _alignment.cigar, _seq, _seq_ID);

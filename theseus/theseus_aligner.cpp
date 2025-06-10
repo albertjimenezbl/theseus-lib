@@ -37,14 +37,14 @@ TheseusAligner::TheseusAligner(const Penalties &penalties,
     _aligner_impl = std::make_unique<TheseusAlignerImpl>(penalties, std::move(G), true, score_only);
 }
 
-TheseusAligner::TheseusAligner(const Penalties &penalties,
-                               const GfaGraph &gfa_graph,
-                               bool msa,
-                               bool score_only)
-{
-    Graph graph(gfa_graph);
-    _aligner_impl = std::make_unique<TheseusAlignerImpl>(penalties, std::move(graph), msa, score_only);
-}
+// TheseusAligner::TheseusAligner(const Penalties &penalties,
+//                                const GfaGraph &gfa_graph,
+//                                bool msa,
+//                                bool score_only)
+// {
+//     Graph graph(gfa_graph);
+//     _aligner_impl = std::make_unique<TheseusAlignerImpl>(penalties, std::move(graph), msa, score_only);
+// }
 
 TheseusAligner::~TheseusAligner() {}
 

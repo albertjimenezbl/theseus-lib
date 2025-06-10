@@ -4,6 +4,8 @@
 #include <string>
 #include <vector>
 
+#include "theseus/alignment.h"
+
 /**
  * A class containing the penalties for the alignment algorithm. The objective
  * function is to minimize the score.
@@ -117,6 +119,46 @@ public:
      * Otherwise, return 0.
      */
     penalty_t gape2() const { return _gape; }
+
+    // Compute the affine gap score of the CIGAR
+    int compute_affine_gap_score(const Alignment::Cigar &cigar) {
+        int score = 0;
+        bool insertion_open = false, deletion_open = false;
+        for (const auto &op : cigar.edit_op) {
+            if (op == 'X') {
+                insertion_open = false;
+                deletion_open = false;
+                score += mism(); // Mismatch score
+            }
+            else if (op == 'I') {
+                deletion_open = false;
+                if (!insertion_open) {
+                    insertion_open = true;
+                    score += _gapo + _gape; // Gap open penalty for insertion
+                }
+                else {
+                    score += _gape; // Gap extend penalty for insertion
+                }
+            }
+            else if (op == 'D') {
+                insertion_open = false;
+                if (!deletion_open) {
+                    deletion_open = true;
+                    score += _gapo + _gape; // Gap open penalty for deletion
+                }
+                else {
+                    score += _gape; // Gap extend penalty for deletion
+                }
+            }
+            else if (op == 'M') {
+                insertion_open = false;
+                deletion_open = false;
+                score += _match; // Match score
+            }
+        }
+        return score;
+    }
+
 protected:
     Type _type;
 
