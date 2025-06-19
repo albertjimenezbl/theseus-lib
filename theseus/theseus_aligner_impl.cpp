@@ -100,7 +100,7 @@ void TheseusAlignerImpl::process_vertex(Graph::vertex* curr_v,
   // Perform the extend operations
   int v_pos = _vertices_data->get_id(v);
   Scope::range cells_range = _scope->m_pos(_score)[v_pos];
-  for (int idx = cells_range.start; idx < cells_range.end; ++idx) {
+  for (Cell::pos_t idx = cells_range.start; idx < cells_range.end; ++idx) {
     extend_diagonal(curr_v, _beyond_scope->m_wf()[idx], v, _beyond_scope->m_wf()[idx], idx, Cell::Matrix::M);
   }
 }
