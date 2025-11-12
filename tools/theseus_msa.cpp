@@ -139,17 +139,17 @@ CMDArgs parse_args(int argc, char *const *argv) {
     int option_index = 0;
     while ((opt = getopt_long(argc, argv, "m:x:o:e:t:s:f:", long_options, &option_index)) != -1) {
         switch (opt) {
-            case 'o':
-                args.gapo = std::stoi(optarg);
-                break;
-            case 'e':
-                args.gape = std::stoi(optarg);
-                break;
             case 'm':
                 args.match = std::stoi(optarg);
                 break;
             case 'x':
                 args.mismatch = std::stoi(optarg);
+                break;
+            case 'o':
+                args.gapo = std::stoi(optarg);
+                break;
+            case 'e':
+                args.gape = std::stoi(optarg);
                 break;
             case 't':
                 args.output_type = std::stoi(optarg);

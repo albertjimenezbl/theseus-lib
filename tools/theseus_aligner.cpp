@@ -53,33 +53,47 @@ struct CMDArgs {
     int gapo = 3;
     int gape = 1;
     std::string graph_file;
-    std::string sequences_file;
-    std::string positions_file;
+    std::string sequences_and_positions_file;
     std::string output_file;
 };
 
 
 // Read sequence data
-void read_sequence_data(
-    std::ifstream &sequences_file,
-    std::vector<std::string> &sequences)
+void read_seq_pos_data(
+    std::ifstream &sp_file,
+    std::vector<std::string> &sequences,
+    std::vector<std::string> &start_vertices,
+    std::vector<int> &start_offsets)
 {
-    if (!sequences_file.is_open()) {
+    if (!sp_file.is_open()) {
         std::cerr << "Could not open dataset file\n";
         return;
     }
 
     std::string sequence, line; // Value and metadata of the sequence
+    std::istringstream iss(line);
+    std::string vertex;
+    int offset;
 
     // Read sequences
     int num = 0;
-    while (getline(sequences_file, line))
+    while (getline(sp_file, line))
     {
         if (line.empty())
             continue;
 
         if (line[0] == '>')
         {
+            // Read positional data
+             if (!(iss >> vertex >> offset)) {
+                std::cerr << "Error reading position line: " << line << std::endl;
+                continue;
+            }
+
+            start_vertices.push_back(vertex);
+            start_offsets.push_back(offset);
+
+            // Store previous sequence if any
             if (num > 0) sequences.push_back(sequence);
             sequence.clear();
             num += 1;
@@ -96,44 +110,7 @@ void read_sequence_data(
     }
 
     // Close the file
-    sequences_file.close();
-}
-
-
-// Read positions data. Each line contains: the starting vertex name and the starting offset
-void read_positions_data(
-    std::ifstream &positions_file,
-    std::vector<std::string> &start_vertices,
-    std::vector<int> &start_offsets)
-{
-    if (!positions_file.is_open()) {
-        std::cerr << "Could not open positions file\n";
-        return;
-    }
-
-    std::string line; // Value and metadata of the sequence
-
-    // Read positions
-    while (getline(positions_file, line))
-    {
-        if (line.empty())
-            continue;
-
-        std::istringstream iss(line);
-        std::string vertex;
-        int offset;
-
-        if (!(iss >> vertex >> offset)) {
-            std::cerr << "Error reading position line: " << line << std::endl;
-            continue;
-        }
-
-        start_vertices.push_back(vertex);
-        start_offsets.push_back(offset);
-    }
-
-    // Close the file
-    positions_file.close();
+    sp_file.close();
 }
 
 
@@ -143,14 +120,13 @@ void read_positions_data(
 void help() {
     std::cout << "Usage: benchmark [OPTIONS]\n"
                  "Options:\n"
-                 "  -m, --match <int>            The match penalty               [default=0]\n"
-                 "  -x, --mismatch <int>         The mismatch penalty            [default=2]\n"
-                 "  -o, --gapo <int>             The gap open penalty            [default=3]\n"
-                 "  -e, --gape <int>             The gap extension penalty       [default=1]\n"
-                 "  -g, --graph_file <file>      Graph file in .gfa format       [Required]\n"
-                 "  -s, --sequences_file <file>  Sequences file in .fasta format [Required]\n"
-                 "  -p, --positions_file <file>  Positions file                  [Required]\n"
-                 "  -f, --output_file <file>     Output file                     [Required]\n";
+                 "  -m, --match <int>            The match penalty                                [default=0]\n"
+                 "  -x, --mismatch <int>         The mismatch penalty                             [default=2]\n"
+                 "  -o, --gapo <int>             The gap open penalty                             [default=3]\n"
+                 "  -e, --gape <int>             The gap extension penalty                        [default=1]\n"
+                 "  -g, --graph_file <file>      Graph file in .gfa format                        [Required]\n"
+                 "  -s, --sequences_file <file>  Sequences and starting positons in .fasta format [Required]\n"
+                 "  -f, --output_file <file>     Output file                                      [Required]\n";
 }
 
 CMDArgs parse_args(int argc, char *const *argv) {
@@ -160,7 +136,6 @@ CMDArgs parse_args(int argc, char *const *argv) {
                                           {"gape", required_argument, 0, 'e'},
                                           {"graph_file", required_argument, 0, 'g'},
                                           {"sequences_file", required_argument, 0, 's'},
-                                          {"positions_file", required_argument, 0, 'p'},
                                           {"output_file", required_argument, 0, 'f'},
                                           {0, 0, 0, 0}};
 
@@ -168,28 +143,25 @@ CMDArgs parse_args(int argc, char *const *argv) {
 
     int opt;
     int option_index = 0;
-    while ((opt = getopt_long(argc, argv, "m:x:o:e:d:", long_options, &option_index)) != -1) {
+    while ((opt = getopt_long(argc, argv, "m:x:o:e:g:s:f:", long_options, &option_index)) != -1) {
         switch (opt) {
-            case 'o':
-                args.gapo = std::stoi(optarg);
-                break;
-            case 'e':
-                args.gape = std::stoi(optarg);
-                break;
             case 'm':
                 args.match = std::stoi(optarg);
                 break;
             case 'x':
                 args.mismatch = std::stoi(optarg);
                 break;
+            case 'o':
+                args.gapo = std::stoi(optarg);
+                break;
+            case 'e':
+                args.gape = std::stoi(optarg);
+                break;
             case 'g':
                 args.graph_file = optarg;
                 break;
             case 's':
-                args.sequences_file = optarg;
-                break;
-            case 'p':
-                args.positions_file = optarg;
+                args.sequences_and_positions_file = optarg;
                 break;
             case 'f':
                 args.output_file = optarg;
@@ -208,7 +180,7 @@ int main(int argc, char *const *argv) {
     // Parsing
     CMDArgs args = parse_args(argc, argv);
 
-    if (args.graph_file.empty() || args.sequences_file.empty() || args.positions_file.empty() || args.output_file.empty()) {
+    if (args.graph_file.empty() || args.sequences_and_positions_file.empty() || args.output_file.empty()) {
         std::cerr << "Missing required arguments\n";
         help();
         return 1;
@@ -218,8 +190,7 @@ int main(int argc, char *const *argv) {
 
     // Manage input/output files
     std::ifstream graph_file(args.graph_file);
-    std::ifstream sequences_file(args.sequences_file);
-    std::ifstream positions_file(args.positions_file);
+    std::ifstream sp_file(args.sequences_and_positions_file);
     std::ofstream output_file(args.output_file);
 
     // Prepare the aligner
@@ -228,8 +199,7 @@ int main(int argc, char *const *argv) {
     // Read queries data
     std::vector<std::string> sequences, start_vertices;
     std::vector<int> start_offsets;
-    read_sequence_data(sequences_file, sequences);
-    read_positions_data(positions_file, start_vertices, start_offsets);
+    read_seq_pos_data(sp_file, sequences, start_vertices, start_offsets);
 
     // Align the sequences
     std::chrono::steady_clock::time_point start = std::chrono::steady_clock::now();
@@ -254,8 +224,7 @@ int main(int argc, char *const *argv) {
 
     // Close files
     graph_file.close();
-    sequences_file.close();
-    positions_file.close();
+    sp_file.close();
 
     return 0;
 }

@@ -59,8 +59,8 @@ TEST_CASE("Check sequence-to-graph aligner") {
             "TAGACAGTACT",   // Perfect match
             "TAGACAGGACT",   // One mismatch
             "ACAGTACTTACT",  // Perfect match with a cycle
-            "AACAGTACTTACT", // An deletion with a cycle
-            "ACAGTATTACT"    // A insertion with a cycle
+            "AACAGTACTTACT", // A deletion with a cycle
+            "ACAGTATTACT"    // An insertion with a cycle
         };
 
         // Starting offsets and vertices

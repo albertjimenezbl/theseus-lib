@@ -1,6 +1,6 @@
 # Theseus-lib
 
-TABLE OF CONTENTS:
+**TABLE OF CONTENTS:**
 
 * [Introduction](#introduction)
     * [What is Theseus?](#what_is_theseus)
@@ -17,8 +17,8 @@ TABLE OF CONTENTS:
 
 ### <a name="what_is_theseus"></a> 1.1. What is Theseus?
 Theseus is a fast, optimal and affine-gap Sequence-to-Graph aligner. It leverages the expected high similarity in the aligned data to accelerate computation and reduce the search space compared to other alternatives. Theseus is a general purpose aligner, providing two main functionalities:
-1. Multiple Sequence Alignment (MSA): Theseus performs MSA of a set of N sequences using the Partial Order Alignment (POA) approach. That is, it progressively builds a partial order graph representing an MSA of a set of given sequences, adding one more sequence to the graph at each iteration.
-2. Aligning to a graph: Alternatively, Theseus can align one or several sequences to a reference graph. The user has to provide an initial position for the alignment to start.
+1. **Multiple Sequence Alignment (MSA):** Theseus performs MSA of a set of N sequences using the Partial Order Alignment (POA) approach. That is, it progressively builds a partial order graph representing an MSA of a set of given sequences, adding one more sequence to the graph at each iteration.
+2. **Alignment to a reference graph:** Alternatively, Theseus can align one or several sequences to a reference graph. The user has to provide an initial position for the alignment to start.
 
 <p align = "center">
 <img src = "img/Theseus_green.png" width="300px">
@@ -126,7 +126,22 @@ An example of the execution of *theseus_msa* is shown in the following piece of 
 
 
 ### <a name="seq_to_graph_tool"></a> 3.2. Seq-to-graph tool: theseus_aligner
-This example illustrates how to use the **theseus_aligner** tool. This tool aligns a set of sequences, given their starting vertices and offsets, to a reference graph. Three input files are required: 1) The reference graph in *.gfa* format, 2) The sequences to be aligned in *.fasta* format, and 3) The set of starting vertices and offsets, in a file containing a line per starting position as *start_vertex start_offset*. The executable is located in the path */build/tools/theseus_aligner*:
+This example illustrates how to use the **theseus_aligner** tool. This tool aligns a set of sequences, given their starting vertices and offsets, to a reference graph. Two input files are required: 1) The reference graph in *.gfa* format, 2) The sequences to be aligned and the starting alignment positions in *.fasta* format.
+
+**[IMPORTANT]**
+The *.fasta* file containing sequence and positional data has a special structure. As all .fasta files, the data associated to each sequence has two parts: 1) A line starting with ">" containing metadata, and 2) the sequence itself, that appears on the next lines. 
+
+1) Constists of two elements: *start_vertex* name and *start_offset*.
+2) Contains the sequence itself.
+
+For instance, a sequence ACGT starting at vertex *v1* and offset *3* would be codified as:
+```
+> v1 3
+ACGT
+> ... (following lines)
+```
+
+The executable is located in the path */build/tools/theseus_aligner*:
 ```
 cd build/tools/
 ```
@@ -134,14 +149,13 @@ cd build/tools/
 Select the scoring scheme, set the input and output files and execute the tool. Each execution of *theseus_aligner* lets you select the following parameters:
 ```
 Options:
-  -m, --match <int>            The match penalty               [default=0]
-  -x, --mismatch <int>         The mismatch penalty            [default=2]
-  -o, --gapo <int>             The gap open penalty            [default=3]
-  -e, --gape <int>             The gap extension penalty       [default=1]
-  -g, --graph_file <file>      Graph file in .gfa format       [Required]
-  -s, --sequences_file <file>  Sequences file in .fasta format [Required]
-  -p, --positions_file <file>  Positions file                  [Required]
-  -f, --output_file <file>     Output file                     [Required]
+  -m, --match <int>            The match penalty                                  [default=0]
+  -x, --mismatch <int>         The mismatch penalty                               [default=2]
+  -o, --gapo <int>             The gap open penalty                               [default=3]
+  -e, --gape <int>             The gap extension penalty                          [default=1]
+  -g, --graph_file <file>      Graph file in .gfa format                          [Required]
+  -s, --sequences_file <file>  Sequences and starting positons in .fasta format   [Required]
+  -f, --output_file <file>     Output file                                        [Required]
 ```
 
 An example of the execution of *theseus_aligner* is shown in the following piece of code
