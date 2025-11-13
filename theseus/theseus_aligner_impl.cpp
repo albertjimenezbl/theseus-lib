@@ -670,7 +670,8 @@ void TheseusAlignerImpl::backtrace(int initial_vertex)
 {
 
   Cell curr_pos = _start_pos;
-  _alignment.start_offset = curr_pos.diag + curr_pos.offset; // Vertex offset = j
+  _alignment.start_offset = _start_offset;
+  _alignment.end_offset = curr_pos.diag + curr_pos.offset; // Vertex offset = j
   _alignment.path.push_back(curr_pos.vertex_id);
   while (curr_pos.prev_pos != -1)
   {
@@ -678,7 +679,6 @@ void TheseusAlignerImpl::backtrace(int initial_vertex)
   }
 
   add_matches(0, curr_pos.offset); // Add the matches until the beginning of the sequence
-  _alignment.end_offset = curr_pos.diag + curr_pos.offset;  // Vertex offset = j
 
   std::reverse(_alignment.edit_op.begin(), _alignment.edit_op.end());
   std::reverse(_alignment.path.begin(), _alignment.path.end());
@@ -753,9 +753,10 @@ void TheseusAlignerImpl::print_as_gaf(
   for (int l = 0; l < alignment.path.size(); ++l) {
     target_length += _graph._vertices[alignment.path[l]].value.size();
   }
+  out_stream << "\t" << target_length;
 
   // Field 8: Target start
-  out_stream << "\t" << alignment.start_offset;
+  out_stream << "\t" << _start_offset;
 
   // Field 9: Target end
   out_stream << "\t" << alignment.end_offset;
@@ -767,6 +768,7 @@ void TheseusAlignerImpl::print_as_gaf(
       num_matches += 1;
     }
   }
+  out_stream << "\t" << num_matches;
 
   // Field 11: Alignment block length
   out_stream << "\t" << alignment.edit_op.size();

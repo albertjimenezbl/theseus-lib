@@ -48,8 +48,8 @@ class Alignment {
      */
       std::vector<char> edit_op; // Edit operations
       std::vector<int> path;     // Path of the alignment
-      int start_offset = 0;      // Start offset in the first vertex of the path
-      int end_offset = 0;        // End offset in the last vertex of the path
+      int start_offset;      // Start offset in the first vertex of the path
+      int end_offset;        // End offset in the last vertex of the path
 
 
       // Compute the affine gap score of the CIGAR,

@@ -54,7 +54,7 @@ class Graph {
         {
             std::vector<edge> in_edges;     // in-going vertices
             std::vector<edge> out_edges;    // out-going vertices
-            std::string value;              // sequence associated to the edge
+            std::string value;              // sequence associated to the vtx
             std::string name;               // name of the vertex
             int first_poa_vtx;              // starting point in the poa graph
         };

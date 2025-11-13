@@ -211,6 +211,7 @@ int main(int argc, char *const *argv) {
         // Perform alignment
         std::cout << "Seq " << i << std::endl;
         alignment = aligner.align(sequences[i], start_vertices[i], start_offsets[i]);
+        std::cout << "Ak¡lignment end " << alignment.end_offset << std::endl;
         aligner.print_alignment_as_gaf(alignment, output_file, "seq_" + std::to_string(i));
     }
 
