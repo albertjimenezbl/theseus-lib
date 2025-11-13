@@ -33,6 +33,7 @@
 #include <string>
 #include <cassert>
 #include <unordered_map>
+#include <algorithm>
 
 /**
  * Gfa Graph representation and loading utilities. More information on the GFA

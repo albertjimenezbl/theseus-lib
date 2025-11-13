@@ -790,6 +790,7 @@ void TheseusAlignerImpl::print_as_gaf(
   if (alignment.edit_op.size() > 0) {
     cigar += std::to_string(count) + alignment.edit_op.back();
   }
+  out_stream << cigar << "\n";
 }
 
 } // namespace theseus

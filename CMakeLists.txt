@@ -111,9 +111,7 @@ function(add_tests test_files output_directory is_ctest is_doctest)
 
         # Conditionally add doctest_main based on is_doctest
         if(is_doctest)
-            add_executable(${test_name} ${test_file} $<TARGET_OBJECTS:tests_common> $<TARGET_OBJECTS:doctest_main>)
-        else()
-            add_executable(${test_name} ${test_file} $<TARGET_OBJECTS:tests_common>)
+            add_executable(${test_name} ${test_file} $<TARGET_OBJECTS:doctest_main>)
         endif()
 
         # To access test files from the test.

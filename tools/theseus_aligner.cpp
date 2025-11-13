@@ -85,7 +85,9 @@ void read_seq_pos_data(
         if (line[0] == '>')
         {
             // Read positional data
-             if (!(iss >> vertex >> offset)) {
+            iss.clear();
+            iss.str(line.substr(1)); // Skip the '>'
+            if (!(iss >> vertex >> offset)) {
                 std::cerr << "Error reading position line: " << line << std::endl;
                 continue;
             }
@@ -210,12 +212,6 @@ int main(int argc, char *const *argv) {
         std::cout << "Seq " << i << std::endl;
         alignment = aligner.align(sequences[i], start_vertices[i], start_offsets[i]);
         aligner.print_alignment_as_gaf(alignment, output_file, "seq_" + std::to_string(i));
-        output_file << "Alignment score: " << alignment.compute_affine_gap_score(penalties) << std::endl;
-        for (int l = 0; l < alignment.edit_op.size(); ++l)
-        {
-            output_file << alignment.edit_op[l] << " ";
-        }
-        output_file << std::endl;
     }
 
     // End time measurement

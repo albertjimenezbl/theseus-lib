@@ -1,10 +1,7 @@
 /*
- *                             The MIT License
+ * 									MIT License
  *
- * Copyright (c) 2024 by Albert Jimenez-Blanco
- *
- * This file is part of #################### Theseus Library ####################.
- *
+ * Copyright (c) 2018 Mikko Rautiainen
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
@@ -12,8 +9,8 @@
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
  *
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
@@ -23,9 +20,15 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  *
- * !!! Note that this parser has been adapted from GraphAligner's GFA parser. https://github.com/maickrau/GraphAligner!!!
+ * -------------------------------------------------------------------------
+ * Modifications copyright (c) 2024 Albert Jimenez-Blanco
+ *
+ * This file has been modified from the original version by Mikko Rautiainen
+ * (https://github.com/maickrau/GraphAligner) under the MIT License.
+ *
+ * Simplification and some minor changes.
+ * -------------------------------------------------------------------------
  */
-
 
 
 #include <iostream>
@@ -34,7 +37,6 @@
 #include <sstream>
 #include <cassert>
 #include "gfa_graph.h"
-#include "utils.h"
 
 namespace theseus {
 	GfaGraph::GfaGraph(std::istream &gfa_stream) // TODO: Necessary?
@@ -77,7 +79,7 @@ namespace theseus {
 
 				// Warning on empty nodes
 				if (dna_seq == "*")
-					throw Utils::InvalidGraphException{std::string{"Nodes without sequence (*) are not currently supported (nodeid " + std::to_string(id) + ")"}};
+					std::cerr << std::string{"Nodes without sequence (*) are not currently supported (nodeid " + std::to_string(id) + ")"};
 				assert(dna_seq.size() >= 1);
 				gfa_nodes[id].seq = dna_seq; // Store the DNA sequence
 			}
@@ -106,11 +108,11 @@ namespace theseus {
 				assert(overlapstr.size() >= 1);
 				if (overlapstr == "*")
 				{
-					throw Utils::InvalidGraphException{"Unspecified edge overlaps (*) are not supported"};
+					std::cerr << "Unspecified edge overlaps (*) are not supported" << std::endl;
 				}
 				if (overlapstr == "")
 				{
-					throw Utils::InvalidGraphException{"Edge overlap missing between edges " + fromstr + " and " + tostr};
+					std::cerr << "Edge overlap missing between edges " + fromstr + " and " + tostr << std::endl;
 				}
 				size_t charAfterIndex = 0;
 				overlap = std::stol(overlapstr, &charAfterIndex, 10);
@@ -118,10 +120,10 @@ namespace theseus {
 				// Check if the format is valid: (number)M
 				if (charAfterIndex != overlapstr.size() - 1 || overlapstr.back() != 'M')
 				{
-					throw Utils::InvalidGraphException{"Edge overlaps other than exact match are not supported (non supported overlap: " + overlapstr + ")"};
+					std::cerr << "Edge overlaps other than exact match are not supported (non supported overlap: " + overlapstr + ")" << std::endl;
 				}
 				if (overlap < 0)
-					throw Utils::InvalidGraphException{std::string{"Edge overlap between nodes " + std::to_string(from) + " and " + std::to_string(to) + " is negative"}};
+					std::cerr << std::string{"Edge overlap between nodes " + std::to_string(from) + " and " + std::to_string(to) + " is negative"} << std::endl;
 
 				// Store the edge
 				int frompos = (int)from;
@@ -138,7 +140,7 @@ namespace theseus {
 			std::string name = gfa_nodes[i].name;
 			if (name.back() == '+')
 			{
-				throw Utils::InvalidGraphException{std::string{"Node " + name + " is present in edges but missing in nodes"}};
+				std::cerr << std::string{"Node " + name + " is present in edges but missing in nodes"} << std::endl;
 				;
 			}
 			assert(name.back() == '-');
@@ -160,11 +162,11 @@ namespace theseus {
 		{
 			if (edge.from_node >= gfa_nodes.size() || gfa_nodes[edge.from_node].seq.size() == 0)
 			{
-				throw Utils::InvalidGraphException{std::string{"The graph has an edge between non-existant node(s) " + gfa_nodes[edge.from_node].name + " and " + gfa_nodes[edge.to_node].name}};
+				std::cerr << std::string{"The graph has an edge between non-existant node(s) " + gfa_nodes[edge.from_node].name + " and " + gfa_nodes[edge.to_node].name} << std::endl;
 			}
 			if (edge.to_node >= gfa_nodes.size() || gfa_nodes[edge.to_node].seq.size() == 0)
 			{
-				throw Utils::InvalidGraphException{std::string{"The graph has an edge between non-existant node(s) " + gfa_nodes[edge.from_node].name + " and " + gfa_nodes[edge.to_node].name}};
+				std::cerr << std::string{"The graph has an edge between non-existant node(s) " + gfa_nodes[edge.from_node].name + " and " + gfa_nodes[edge.to_node].name} << std::endl;
 			}
 		}
 
