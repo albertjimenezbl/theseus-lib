@@ -71,9 +71,6 @@ install(DIRECTORY include/
 # TESTS
 #
 
-add_library(tests_common OBJECT
-    tests/dp_aligner.cpp
-)
 
 add_library(doctest_main OBJECT tests/doctest_main.cpp)
 
