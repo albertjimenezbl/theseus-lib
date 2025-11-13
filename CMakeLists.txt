@@ -81,10 +81,6 @@ file(GLOB_RECURSE UNIT_TESTS
     "tests/unit/*.cpp"
 )
 
-file(GLOB_RECURSE INTERACTIVE_TESTS
-    "tests/interactive/*.cpp"
-)
-
 file(GLOB_RECURSE CPP_EXAMPLES
     "examples/cpp/*.cpp"
 )
@@ -142,8 +138,6 @@ if(ENABLE_TESTS)
     enable_testing()
 
     add_tests("${UNIT_TESTS}" "tests/unit" TRUE TRUE)
-
-    add_tests("${INTERACTIVE_TESTS}" "tests/interactive" FALSE FALSE)
 
     add_tests("${CPP_EXAMPLES}" "examples/cpp" TRUE FALSE)
 

@@ -61,3 +61,6 @@ SOTA/*
 
 # Results
 results/*
+
+# Theseus interactive
+tests/interactive/*
