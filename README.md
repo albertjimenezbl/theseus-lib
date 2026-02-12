@@ -160,11 +160,15 @@ Options:
 
 An example of the execution of *theseus_aligner* is shown in the following piece of code
 ```
-./theseus_aligner -m 0 -x 2 -o 3 -e 1 -g reference_graph.gfa -s sequences.fasta -p positions.txt -f output.out
+./theseus_aligner -m 0 -x 2 -o 3 -e 1 -g reference_graph.gfa -s sequences.fasta -f output.out
 ```
 
+## <a name="theseus_datasets"></a> 4. DATASETS
 
-## <a name="theseus_bugs"></a> 4. REPORTING BUGS AND FEATURE REQUEST
+The datasets used in our paper are available in Zenodo. <!-- falta posar els links
+
+
+## <a name="theseus_bugs"></a> 5. REPORTING BUGS AND FEATURE REQUEST
 
 Feedback and bug reporting is highly appreciated. Please report any issue or suggestion on github or email to the main developer (albert.jimenez1@bsc.es). Don't hesitate to contact us if:
   - You experience any bug or crash.
@@ -173,12 +177,12 @@ Feedback and bug reporting is highly appreciated. Please report any issue or sug
   - Need help integrating the library into your tool.
 
 
-## <a name="theseus_licence"></a> 5. LICENSE
+## <a name="theseus_licence"></a> 6. LICENSE
 
 Theseus-lib is distributed under MIT licence.
 
 
-## <a name="theseus_authors"></a> 6. AUTHORS
+## <a name="theseus_authors"></a> 7. AUTHORS
 
 Albert Jimenez Blanco (albert.jimenez1@bsc.es) is the main developer and the person you should address your complaints.
 
@@ -186,5 +190,5 @@ Lorién López-Villellas has had major contributions both in the technical imple
 
 <!-- ## <a name="theseus_cite"></a> 7. CITATION
 
-**Albert Jimenez-Blanco, Lorien Lopez-Villellas, Juan Carlos Moure, Miquel Moreto, Santiago Marco-Sola**. ["Theseus: Fast and Optimal Affine-Gap Sequence-to-Graph Alignment"](). Bioinformatics, 2025. -->
+**Albert Jimenez-Blanco, Lorien Lopez-Villellas, Juan Carlos Moure, Miquel Moreto, Santiago Marco-Sola**. ["Theseus: Fast and Optimal Affine-Gap Sequence-to-Graph Alignment"](). Bioinformatics, 2026. -->
 

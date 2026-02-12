@@ -84,26 +84,6 @@ void TheseusAlignerImpl::new_alignment() {
     _vertices_data->activate_vertex(_start_node);
     _vertices_data->get_vertex_data(_start_node)._m_jumps_positions[0].push_back(0);
 
-
-    // else {
-    //   // Find all initial vertices (those without incoming edges)
-    //   Cell init_condition;
-    //   init_condition.offset = 0;
-    //   init_condition.prev_pos = -1;
-    //   int source_num = 0, pos_m_jumps = 0;
-    //   // TODO: Formalize and change SEMI-GLOBAL for read mapping
-    //   for (int l = 0; l < _graph._vertices.size(); ++l) {
-    //     init_condition.vertex_id = l;
-    //     _vertices_data->activate_vertex(l);
-    //     for (int k = 0; k < _graph._vertices[l].value.size(); ++k) {
-    //       init_condition.diag = k;
-    //       _beyond_scope->m_jumps_wf().push_back(init_condition);
-    //       _vertices_data->get_vertex_data(l)._m_jumps_positions[0].push_back(pos_m_jumps);
-    //       ++pos_m_jumps;
-    //     }
-    //     ++source_num;
-    //   }
-
     // Alignment data
     _alignment.path.clear();
     _alignment.edit_op.clear();
