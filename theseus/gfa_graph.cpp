@@ -152,8 +152,21 @@ namespace theseus {
 				assert(rev_id < gfa_nodes.size());
 				assert(gfa_nodes[rev_id].seq.size() > 0);
 				std::string dna_string = gfa_nodes[rev_id].seq;
-				std::reverse(dna_string.begin(), dna_string.end()); // Reverse the DNA string
+
+				// Compute reverse complement of the DNA string (correct lower case letters as well)
+				std::reverse(dna_string.begin(), dna_string.end()); 	// Reverse the DNA string
+				for (char &c : dna_string) {							// Complement the DNA string
+					switch (c) {
+						case 'A': case 'a': c = 'T'; break;
+						case 'T': case 't': c = 'A'; break;
+						case 'C': case 'c': c = 'G'; break;
+						case 'G': case 'g': c = 'C'; break;
+					}
+				}
 				gfa_nodes[i].seq = dna_string;
+			}
+			else {
+				std::cerr << std::string{"Node " + name + " is present in edges but missing in nodes"} << std::endl;
 			}
 		}
 
