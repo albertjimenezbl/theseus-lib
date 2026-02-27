@@ -51,13 +51,24 @@ namespace theseus
     class TheseusAligner
     {
     public:
+        // Tag type for constructors that parse graph streams from files.
+        struct GfaStreamTag {};
+
         /**
-         * Constructor
+         * Constructor from gfa
          *
          * @param penalties User defined alignment penalties
          * @param gfa_stream Input stream containing the graph in GFA format
          */
-        TheseusAligner(const Penalties &penalties, std::istream &gfa_stream);
+        TheseusAligner(const Penalties &penalties, std::istream &gfa_stream, GfaStreamTag);
+
+        /**
+         * @brief Constructor from handlegraph graph
+         *
+         * @param penalties User defined alignment penalties
+         * @param graph HandleGraph object representing the graph to be aligned to
+         */ //TODO:
+        // TheseusAligner(const Penalties &penalties, const handlegraph::HandleGraph &graph);
 
         /**
          * Class destructor

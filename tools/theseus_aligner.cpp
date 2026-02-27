@@ -201,7 +201,7 @@ int main(int argc, char *const *argv) {
     std::ofstream output_file(args.output_file);
 
     // Prepare the aligner
-    theseus::TheseusAligner aligner(penalties, graph_file);
+    theseus::TheseusAligner aligner(penalties, graph_file, theseus::TheseusAligner::GfaStreamTag{});
 
     // Read queries data
     std::vector<std::string> sequences, start_vertices;

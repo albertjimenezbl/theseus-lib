@@ -82,7 +82,7 @@ This example illustrates how to use Theseus as a general Sequence-to-Graph Align
 Then, create and configure an aligner object. This object is defined by two parameters: a set of penalties and file stream containing a reference graph in .gfa format. An example on how to set such parameters and create an aligner is found in the next code snippet:
 ```
 theseus::Penalties penalties(match, mismatch, gap_open, gap_extend);
-theseus::TheseusAligner aligner(penalties, gfa_file_stream);
+theseus::TheseusAligner aligner(penalties, gfa_file_stream, theseus::TheseusAligner::GfaStreamTag{});
 ```
 
 Once this is done, we can start aligning sequences to the reference graph using the align functionality. **Importantly**, a call to the align function consists of three arguments: the **sequence** to be aligned, the **starting vertex** for the alignment and **starting offset** in that starting vertex. The result of the alignment is an Alignment object with CIGAR, path and score information:
