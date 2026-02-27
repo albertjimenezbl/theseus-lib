@@ -625,7 +625,7 @@ void TheseusAlignerImpl::one_backtrace_step(
         add_matches(prev_cell.offset + num_indels, curr_cell.offset);
         for (int l = 0; l < num_indels; ++l) add_deletion();
       }
-      else {                                                                                      // Insertion
+      else {                                                                              // Insertion
         num_indels = curr_cell.diag - prev_cell.diag;
         add_matches(prev_cell.offset, curr_cell.offset);
         for (int l = 0; l < num_indels; ++l) add_insertion();
@@ -633,11 +633,11 @@ void TheseusAlignerImpl::one_backtrace_step(
     }
   }
   else {                                            // Jump
-    add_matches(prev_cell.offset, curr_cell.offset);                    // Add the necessary matches
-    _alignment.path.push_back(prev_cell.vertex_id); // Add the new vertex to the path
+    add_matches(prev_cell.offset, curr_cell.offset);                          // Add the necessary matches
+    _alignment.path.push_back(prev_cell.vertex_id);                           // Add the new vertex to the path
     int col_in_prev_v = prev_cell.diag + prev_cell.offset;
     int num_insertions = _graph._vertices[prev_cell.vertex_id].value.size() - col_in_prev_v;
-    for (int l = 0; l < num_insertions; ++l) add_insertion();                   // Add the necessary insertions
+    for (int l = 0; l < num_insertions; ++l) add_insertion();                 // Add the necessary insertions
   }
 
   curr_cell = prev_cell;

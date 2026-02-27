@@ -78,11 +78,11 @@ TEST_CASE("Check sequence-to-graph aligner") {
 
         // Expected paths TODO: Should have names of vertices instead of internal indices
         std::vector<std::vector<int>> expected_paths = {
-            {0, 1, 3},
-            {0, 1, 3},
-            {1, 3, 0},
-            {1, 3, 0},
-            {1, 3, 0},
+            {0, 2, 6},
+            {0, 2, 6},
+            {2, 6, 0},
+            {2, 6, 0},
+            {2, 6, 0},
         };
 
         // Expected scores
@@ -100,7 +100,7 @@ TEST_CASE("Check sequence-to-graph aligner") {
 
             CHECK(alignment.compute_affine_gap_score(penalties) == expected_scores[i]); // Check score
             CHECK(alignment.edit_op == expected_cigars[i]);        // Check CIGAR
-            // CHECK(alignment.path == expected_paths[i]); // Check path
+            CHECK(alignment.path == expected_paths[i]); // Check path
         }
     }
 }
