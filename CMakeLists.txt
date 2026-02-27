@@ -3,9 +3,22 @@ cmake_minimum_required(VERSION 3.14)
 project(theseus VERSION 1.0)
 
 include(GNUInstallDirs)
+include(FetchContent)
 
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED On)
+
+#
+# DEPENDENCIES
+#
+
+FetchContent_Declare(
+    libhandlegraph
+    GIT_REPOSITORY https://github.com/vgteam/libhandlegraph.git
+    GIT_TAG b95f7637968b4c8c3c4d1bad13aaa1835c607fe0
+)
+
+FetchContent_MakeAvailable(libhandlegraph)
 
 #
 # SETTINGS
@@ -54,7 +67,10 @@ file(GLOB_RECURSE THESEUS_SOURCES
 # Add the library
 add_library(${PROJECT_NAME} ${THESEUS_SOURCES})
 
-# Specify the installation properties for the library
+# Link against dependencies
+target_link_libraries(${PROJECT_NAME} PUBLIC handlegraph)
+
+# Specify the installation properhandleties for the library
 install(TARGETS ${PROJECT_NAME}
     EXPORT ${PROJECT_NAME}-targets
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}  # Default to bin
