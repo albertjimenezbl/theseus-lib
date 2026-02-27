@@ -45,6 +45,27 @@ namespace theseus {
 	}
 
 	/**
+	 * @brief Return the reverse complement of a DNA string.
+	 *
+	 * @param dna_string The DNA string to reverse complement.
+	 * @return std::string The reverse complement of the input DNA string.
+	 */
+	std::string reverse_complement(const std::string &dna_string) {
+		std::string rev_comp = dna_string;
+		std::reverse(rev_comp.begin(), rev_comp.end()); 	// Reverse the DNA string
+		for (char &c : rev_comp) {							// Complement the DNA string
+			switch (c) {
+				case 'A': case 'a': c = 'T'; break;
+				case 'T': case 't': c = 'A'; break;
+				case 'C': case 'c': c = 'G'; break;
+				case 'G': case 'g': c = 'C'; break;
+			}
+		}
+		return rev_comp;
+	}
+
+
+	/**
 	 * @brief Load a GFA graph from a stream. Currently, only segments (S) and
 	 * links (L) are supported.
 	 *
@@ -72,8 +93,7 @@ namespace theseus {
 				assert(type == "S");
 				sstr >> name >> dna_seq;
 
-				// We consider the forward orientation. If the segment appears reversed
-				// in some link, we will add the reversed version as well.
+				// We first consider the forward orientation
 				name = name + "+";
 				size_t id = node_name_to_id(name);
 
@@ -82,27 +102,41 @@ namespace theseus {
 					std::cerr << std::string{"Nodes without sequence (*) are not currently supported (nodeid " + std::to_string(id) + ")"};
 				assert(dna_seq.size() >= 1);
 				gfa_nodes[id].seq = dna_seq; // Store the DNA sequence
+
+				// We add the reverse orientation as well
+				std::string rev_name = name.substr(0, name.size() - 1) + "-";
+				size_t rev_id = node_name_to_id(rev_name);
+				std::string rev_dna_seq = reverse_complement(dna_seq);
+				gfa_nodes[rev_id].seq = rev_dna_seq; // Store the DNA sequenc
+
 			}
 
-			// Parse link data
+			// Parse link data. We add both edges (fromstr+fromstart, tostr+toend)
+			// and (tostr+toend, fromstr+fromstart), to support bidirectedness
 			if (line[0] == 'L')
 			{
 				std::stringstream sstr{line};
-				std::string type, fromstr, tostr, fromstart, toend, overlapstr;
+				std::string type, fromstr_forward, tostr_forward, fromstr_reverse, tostr_reverse, fromstart, toend, overlapstr;
 				int overlap = 0;
 				sstr >> type;
-				sstr >> fromstr >> fromstart >> tostr >> toend >> overlapstr;
+				sstr >> fromstr_forward >> fromstart >> tostr_forward >> toend >> overlapstr;
 
 				// Assess if the read data is consistent with the format
 				assert(type == "L");
 				assert(fromstart == "+" || fromstart == "-");
 				assert(toend == "+" || toend == "-");
 
-				// Check if the corresponding node or its reverse exist and add them if not
-				fromstr = fromstr + fromstart;
-				tostr = tostr + toend;
-				size_t from = node_name_to_id(fromstr);
-				size_t to = node_name_to_id(tostr);
+				// Set name ids
+				fromstr_forward = fromstr_forward + fromstart;
+				tostr_forward = tostr_forward + toend;
+				fromstr_reverse = fromstr_forward.substr(0, fromstr_forward.size() - 1) + (fromstart == "+" ? "-" : "+");
+				tostr_reverse = tostr_forward.substr(0, tostr_forward.size() - 1) + (toend == "+" ? "-" : "+");
+
+				// Get the node ids for the forward and reverse orientations of the edge
+				size_t from_forward = node_name_to_id(fromstr_forward);
+				size_t to_forward = node_name_to_id(tostr_forward);
+				size_t from_reverse = node_name_to_id(fromstr_reverse);
+				size_t to_reverse = node_name_to_id(tostr_reverse);
 
 				// Check overlap
 				assert(overlapstr.size() >= 1);
@@ -112,7 +146,7 @@ namespace theseus {
 				}
 				if (overlapstr == "")
 				{
-					std::cerr << "Edge overlap missing between edges " + fromstr + " and " + tostr << std::endl;
+					std::cerr << "Edge overlap missing between edges " + fromstr_forward + " and " + tostr_forward << std::endl;
 				}
 				size_t charAfterIndex = 0;
 				overlap = std::stol(overlapstr, &charAfterIndex, 10);
@@ -123,16 +157,21 @@ namespace theseus {
 					std::cerr << "Edge overlaps other than exact match are not supported (non supported overlap: " + overlapstr + ")" << std::endl;
 				}
 				if (overlap < 0)
-					std::cerr << std::string{"Edge overlap between nodes " + std::to_string(from) + " and " + std::to_string(to) + " is negative"} << std::endl;
+					std::cerr << std::string{"Edge overlap between nodes " + std::to_string(from_forward) + " and " + std::to_string(to_forward) + " is negative"} << std::endl;
 
-				// Store the edge
-				int frompos = (int)from;
-				int topos = (int)to;
+				// Store the edges
+				// Forward edge
+				int frompos = (int)from_forward;
+				int topos = (int)to_forward;
+				gfa_edges.emplace_back(frompos, topos, overlap);
+				// Reverse edge
+				frompos = (int)to_reverse;
+				topos = (int)from_reverse;
 				gfa_edges.emplace_back(frompos, topos, overlap);
 			}
 		}
 
-		// Add the value (DNA string) for the reversed nodes (if the + segment exists)
+		// Check that nodes are not empty
 		for (int i = 0; i < gfa_nodes.size(); i++)
 		{
 			if (gfa_nodes[i].seq.size() > 0)
@@ -140,32 +179,6 @@ namespace theseus {
 			std::string name = gfa_nodes[i].name;
 			if (name.back() == '+')
 			{
-				std::cerr << std::string{"Node " + name + " is present in edges but missing in nodes"} << std::endl;
-				;
-			}
-			assert(name.back() == '-');
-			std::string rev_name = name.substr(0, name.size() - 1) + "+";
-			auto rev_ptr = name_to_id_.find(rev_name);
-			if (rev_ptr != name_to_id_.end())
-			{
-				size_t rev_id = rev_ptr->second;
-				assert(rev_id < gfa_nodes.size());
-				assert(gfa_nodes[rev_id].seq.size() > 0);
-				std::string dna_string = gfa_nodes[rev_id].seq;
-
-				// Compute reverse complement of the DNA string (correct lower case letters as well)
-				std::reverse(dna_string.begin(), dna_string.end()); 	// Reverse the DNA string
-				for (char &c : dna_string) {							// Complement the DNA string
-					switch (c) {
-						case 'A': case 'a': c = 'T'; break;
-						case 'T': case 't': c = 'A'; break;
-						case 'C': case 'c': c = 'G'; break;
-						case 'G': case 'g': c = 'C'; break;
-					}
-				}
-				gfa_nodes[i].seq = dna_string;
-			}
-			else {
 				std::cerr << std::string{"Node " + name + " is present in edges but missing in nodes"} << std::endl;
 			}
 		}

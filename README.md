@@ -129,14 +129,14 @@ An example of the execution of *theseus_msa* is shown in the following piece of 
 This example illustrates how to use the **theseus_aligner** tool. This tool aligns a set of sequences, given their starting vertices and offsets, to a reference graph. Two input files are required: 1) The reference graph in *.gfa* format, 2) The sequences to be aligned and the starting alignment positions in *.fasta* format.
 
 **[IMPORTANT]**
-The *.fasta* file containing sequence and positional data has a special structure. As all .fasta files, the data associated to each sequence has two parts: 1) A line starting with ">" containing metadata, and 2) the sequence itself, that appears on the next lines. 
+The *.fasta* file containing sequence and positional data has a special structure. As all .fasta files, the data associated to each sequence has two parts: 1) A line starting with ">" containing metadata, and 2) the sequence itself, that appears on the next lines.
 
-1) Constists of two elements: *start_vertex* name and *start_offset*.
+1) Constists of three elements: *start_vertex* name, *start_offset* and orientation of the alignment. The orientation of the alignment can either be "+" or "-" and it indicates Theseus whether to align from the forward or reverse strand of the given start node. *[IMPORTANT]*, the *start_offset* value is respect the starting node in the given alignment orientation. That is, if alignment orientation is reverse ("-") and the offset is 0, alignment starts at the beggining of the reverse complemented segment.
 2) Contains the sequence itself.
 
-For instance, a sequence ACGT starting at vertex *v1* and offset *3* would be codified as:
+For instance, a sequence ACGT starting at vertex *v1*, offset *3* and in the forward orientation *+* would be codified as:
 ```
-> v1 3
+> v1 3 +
 ACGT
 > ... (following lines)
 ```

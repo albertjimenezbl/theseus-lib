@@ -72,7 +72,7 @@ void read_seq_pos_data(
 
     std::string sequence, line; // Value and metadata of the sequence
     std::istringstream iss(line);
-    std::string vertex;
+    std::string vertex, orientation;
     int offset;
 
     // Read sequences
@@ -87,11 +87,16 @@ void read_seq_pos_data(
             // Read positional data
             iss.clear();
             iss.str(line.substr(1)); // Skip the '>'
-            if (!(iss >> vertex >> offset)) {
+            if (!(iss >> vertex >> offset >> orientation)) {
                 std::cerr << "Error reading position line: " << line << std::endl;
                 continue;
             }
+            if (orientation != "+" && orientation != "-") {
+                std::cerr << "Invalid orientation in line: " << line << std::endl;
+                continue;
+            }
 
+            vertex = vertex + orientation; // We store the orientation in the vertex name);
             start_vertices.push_back(vertex);
             start_offsets.push_back(offset);
 

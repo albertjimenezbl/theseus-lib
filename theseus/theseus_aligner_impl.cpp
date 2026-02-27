@@ -143,8 +143,7 @@ Alignment TheseusAlignerImpl::align(
     _start_offset = 0;
   }
   else {
-    // TODO: What happens if orientation is reverse? Suppose always forward for now
-    _start_node = _graph.get_id(start_node + "+");
+    _start_node = _graph.get_id(start_node);
     _start_offset = start_offset;
   }
 
