@@ -223,7 +223,7 @@ int main(int argc, char *const *argv) {
     // Define alignment penalties
     theseus::Penalties penalties(args.match, args.mismatch, args.gapo, args.gape);
     // Determine heuristics
-    theseus::Heuristics heuristics(args.density_drop, args.lag_pruning);
+    theseus::Heuristics heuristics(args.lag_pruning, args.density_drop);
     // Read the sequences for the MSA
     std::vector<std::string> sequences;
     std::vector<bool> reversed, is_ends_free;

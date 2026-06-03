@@ -65,19 +65,19 @@ namespace theseus {
             _max_offset = 0;
 
             // Drop heuristic parameters (depending on sequence length and penalties)
-            // Consider for now that you want to capture gaps of length max(min(500, seq_len/100), 10)
-            _s_min               = std::max(std::min(500, seq_len/10), 100)*gape;
+            // Consider for now that you want to capture gaps of length max(min(500, seq_len/20), 10)
+            _s_min               = std::max(std::min(500, seq_len/20), 100)*gape;
             // std::cout << seq_len << " smin= " << _s_min << std::endl;
-            int min_offsets      = std::max(std::min(500, seq_len/10), 100);
-            _offsets_to_drop     = min_offsets*1.5; // 1 match every 2 errors (TODO: Too loose?)
+            int min_offsets      = std::max(std::min(500, seq_len/20), 100);
+            _offsets_to_drop     = min_offsets*2; // (TODO: Too loose?)
             // General _last_offsets initialization
             _K                   = _s_min + 1;
             _pruning_allowed     = false;
             _last_max_offsets.clear();
             _last_max_offsets.resize(_K, 0);
             // Initialization of lag pruning
-            int min_offsets_to_prune   = std::max(std::min(500, seq_len/100), 50);
-            _min_off_increase_to_prune = min_offsets_to_prune*2; // Advance 1 match per error (50% error rate?)
+            int min_offsets_to_prune   = std::max(std::min(500, seq_len/20), 50);
+            _min_off_increase_to_prune = min_offsets_to_prune*3; // Advance 2 matches per error (33% error rate?)
             _lookback_lag              = min_offsets_to_prune*gape;
         }
 
@@ -142,7 +142,7 @@ namespace theseus {
         inline bool check_lag_pruning(int &curr_offset) {
             if (!_lag_pruning) return false;
             // Condition 1
-            bool condition_1 = _max_offset - curr_offset > _offsets_to_drop; // TODO: Check
+            bool condition_1 = _max_offset - curr_offset > _min_off_increase_to_prune; // TODO: Check
             // Condition 2 is _pruning_allowed value (updated once per score)
             return (condition_1 && _pruning_allowed);
         }
