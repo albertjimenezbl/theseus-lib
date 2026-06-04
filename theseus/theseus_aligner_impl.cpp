@@ -195,7 +195,7 @@ Alignment TheseusAlignerImpl::align(
     int start_row = _reversed_alignment ?
                     _seq.size() - _start_pos.offset :
                     0;
-    _poa_graph->add_alignment_poa(_graph, _alignment, _seq, _seq_ID, start_column, start_row, weight, !_ends_free, _reversed_alignment);
+    _poa_graph->add_alignment_poa(_graph, _alignment, _seq, _seq_ID, start_column, start_row, weight, !_ends_free, _reversed_alignment, false /*is_dropped*/);
   }
   else {
     // Error messages
@@ -203,7 +203,7 @@ Alignment TheseusAlignerImpl::align(
       std::cerr << THESEUS_STATUS_MAX_STEPS_REACHED_MSG << std::endl;
     }
     else if (_alignment.theseus_status == THESEUS_STATUS_END_UNREACHABLE) {
-      std::cerr << THESEUS_STATUS_END_UNREACHABLE_MSG << std::endl;
+      // std::cerr << THESEUS_STATUS_END_UNREACHABLE_MSG << std::endl;
       // Choose starting position for backtrace (cell with maximum offset in M[s-_s_min]-M[s-_s_min - scope_size])
       // matrix on the last scope scores
       init_partial_backtrace();
@@ -215,7 +215,7 @@ Alignment TheseusAlignerImpl::align(
       int start_row = _reversed_alignment ?
                     _seq.size() - _start_pos.offset :
                     0;
-      _poa_graph->add_alignment_poa(_graph, _alignment, _seq, _seq_ID, start_column, start_row, weight, !_ends_free, _reversed_alignment);
+      _poa_graph->add_alignment_poa(_graph, _alignment, _seq, _seq_ID, start_column, start_row, weight, !_ends_free, _reversed_alignment, true /*is_dropped*/);
     }
   }
   return _alignment;

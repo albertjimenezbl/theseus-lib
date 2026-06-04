@@ -262,7 +262,8 @@ namespace theseus {
             Graph &compacted_G,
             int  pivot_column,
             bool is_end_to_end,
-            bool is_reversed
+            bool is_reversed,
+            bool is_dropped
         ) {
             // First vertex (add it because it is empty)
             if (!is_reversed || is_end_to_end) {
@@ -287,7 +288,7 @@ namespace theseus {
                 }
             }
             // Last vertex (add it because it is empty)
-            if (is_reversed || is_end_to_end) {
+            if (is_reversed || (is_end_to_end && !is_dropped)) {
                 poa_path.push_back(_first_poa_vtx[backtrace.path[backtrace.path.size() - 1]]);
             }
             else {
@@ -298,10 +299,6 @@ namespace theseus {
                 // Add fake end node
                 poa_path.push_back(-1);
             }
-            // for (int l = 0; l < poa_path.size(); ++l) {
-            //     std::cout << poa_path[l] << " ";
-            // }
-            // std::cout << std::endl;
         }
 
 
@@ -315,11 +312,12 @@ namespace theseus {
             int start_row,
             int weight,
             bool is_end_to_end,
-            bool is_reversed
+            bool is_reversed,
+            bool is_dropped
         ) {
             // Convert the path to the corresponding path in the poa graph
             std::vector<int> poa_path;
-            convert_path(backtrace, poa_path, compacted_G, start_column, is_end_to_end, is_reversed);
+            convert_path(backtrace, poa_path, compacted_G, start_column, is_end_to_end, is_reversed, is_dropped);
             // Reversed sequences are added "forward". Change access to them
             if (is_reversed) {
                 new_seq.change_reversed_flag(false);
@@ -329,14 +327,12 @@ namespace theseus {
             long unsigned int k = 0;
             int i = start_row, l = 0, prev_v_poa = poa_path[0], new_v_poa = poa_path[0];
             while (k < backtrace.edit_op.size()) {
-                // std::cout << "k: " << k << std::endl;
                 if (backtrace.edit_op[k] == 'M') {  // Match
                     prev_v_poa = new_v_poa;
                     new_v_poa = poa_path[l + 1];
                     _poa_vertices[new_v_poa].sequence_IDs.push_back(seq_ID);
                     _poa_vertices[new_v_poa].weight += weight;
                     update_poa_edge(prev_v_poa, new_v_poa, compacted_G);
-                    // std::cout << prev_v_poa << " to " << new_v_poa << std::endl;
                     i += 1;
                     l += 1;
                     new_node_exists = false;
