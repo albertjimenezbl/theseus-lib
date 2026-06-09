@@ -66,9 +66,9 @@ namespace theseus {
 
             // Drop heuristic parameters (depending on sequence length and penalties)
             // Consider for now that you want to capture gaps of length max(min(500, seq_len/20), 10)
-            _s_min               = std::max(std::min(500, seq_len/20), 100)*gape;
+            _s_min               = std::max(std::min(1000, seq_len/10), 100)*gape;
             // std::cout << seq_len << " smin= " << _s_min << std::endl;
-            int min_offsets      = std::max(std::min(500, seq_len/20), 100);
+            int min_offsets      = std::max(std::min(1000, seq_len/10), 100);
             _offsets_to_drop     = min_offsets*2; // (TODO: Too loose?)
             // General _last_offsets initialization
             _K                   = _s_min + 1;
