@@ -50,9 +50,6 @@ struct CMDArgs {
     int mismatch = 2;
     int gapo = 3;
     int gape = 1;
-    // Heuristics
-    bool density_drop = false;
-    bool lag_pruning  = false;
     // I/O
     int output_type = 0;        // 0: MSA, 1: GFA, 2: Consensus, 3: Dot
     std::string sequences_file;
@@ -71,6 +68,8 @@ void read_sequences(
     std::vector<int> &weights,
     std::vector<bool> &reversed,
     std::vector<bool> &is_ends_free,
+    std::vector<bool> &use_drop,
+    std::vector<bool> &use_lag_pruning,
     CMDArgs &args)
 {
 
@@ -98,11 +97,13 @@ void read_sequences(
             num += 1;
             std::istringstream iss(line);
             char header;
-            int weight, rev, ends_free;
-            iss >> header >> rev >> ends_free >> weight;
+            int weight, rev, ends_free, drop, lag_pruning;
+            iss >> header >> rev >> ends_free >> weight >> drop >> lag_pruning;
             weights.push_back(weight);
             reversed.push_back(rev == 1);
             is_ends_free.push_back(ends_free == 1);
+            use_drop.push_back(drop == 1);
+            use_lag_pruning.push_back(lag_pruning == 1);
         }
         else
         {
@@ -142,11 +143,7 @@ void help() {
                  "                               4: Dot: Output in .dot format for visualization purposes.\n"
                  "                                       Only tractable for small graphs\n"
                  "  -f, --output <file>         Output file                                             [Required]\n"
-                 "  -s, --sequences <file>      Dataset file                                            [Required]\n\n"
-
-                 " Heuristics:\n"
-                 "  -d  --density_heuristic     Activate the drop heuristic based on advancement density.            \n"
-                 "  -l  --lag_pruning           Activate the pruning of diagonals lagging behind int the alignment.  \n";
+                 "  -s, --sequences <file>      Dataset file                                            [Required]\n";
 }
 
 CMDArgs parse_args(int argc, char *const *argv) {
@@ -157,8 +154,6 @@ CMDArgs parse_args(int argc, char *const *argv) {
                                           {"output_type", required_argument, 0, 't'},
                                           {"sequences", required_argument, 0, 's'},
                                           {"output", required_argument, 0, 'f'},
-                                          {"lag_pruning", no_argument, 0, 'l'},
-                                          {"density_heuristic", no_argument, 0, 'd'},
                                           {0, 0, 0, 0}};
 
     CMDArgs args;
@@ -187,12 +182,6 @@ CMDArgs parse_args(int argc, char *const *argv) {
                 break;
             case 'f':
                 args.output_file = optarg;
-                break;
-            case 'l':
-                args.lag_pruning = true;
-                break;
-            case 'd':
-                args.density_drop = true;
                 break;
             default:
                 std::cerr << "Invalid option" << std::endl;
@@ -226,9 +215,9 @@ int main(int argc, char *const *argv) {
     theseus::Heuristics heuristics;
     // Read the sequences for the MSA
     std::vector<std::string> sequences;
-    std::vector<bool> reversed, is_ends_free;
+    std::vector<bool> reversed, is_ends_free, use_drop, use_lag_pruning;
     std::vector<int> weights;
-    read_sequences(sequences, weights, reversed, is_ends_free, args);
+    read_sequences(sequences, weights, reversed, is_ends_free, use_drop, use_lag_pruning, args);
 
     // Prepare the data
     std::vector<theseus::Alignment> alignments(sequences.size());
@@ -238,7 +227,7 @@ int main(int argc, char *const *argv) {
     // Alignment with Theseus
     for (int j = 1; j < sequences.size(); ++j) {
         std::cout << "Processing sequence " << j << std::endl;
-        alignments[j] = aligner.align(sequences[j], weights[j], reversed[j], is_ends_free[j], args.density_drop, args.lag_pruning);
+        alignments[j] = aligner.align(sequences[j], weights[j], reversed[j], is_ends_free[j], use_drop[j], use_lag_pruning[j]);
         std::cout << "Score = " << alignments[j].compute_affine_gap_score(penalties) << std::endl << std::endl;
     }
 

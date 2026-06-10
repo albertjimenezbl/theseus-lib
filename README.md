@@ -96,14 +96,14 @@ cd build/tools/
 **[IMPORTANT]**
 The *.fasta* file containing sequences has a special structure. As all .fasta files, the data associated to each sequence has two parts: 1) A line starting with ">" containing metadata, and 2) the sequence itself, that appears on the next lines.
 
-1) Constists of three elements: ">" and three values. The first two are boolean values (0 or 1) indicating **1)** whether the associated read should be mapped in the canonical direction (from left to right and from source to sink) or in the reverse direction (from right to left and from sink to source), and **2)** whether the added sequence has one free end on the graph or not. The third value **3)** indicates the weight of the associated sequence.
+1) Constists of six elements: ">" and five values. The first two are boolean values (0 or 1) indicating **1)** whether the associated read should be mapped in the canonical direction (from left to right and from source to sink) or in the reverse direction (from right to left and from sink to source), and **2)** whether the added sequence has one free end on the graph or not. The third value **3)** indicates the weight of the associated sequence. The last two values are also boolean flags indicating whether the corresponding sequence is aligned using **4)** the density drop heuristic, and **5)** the lag pruning heuristic.
 2) Contains the sequence itself.
 
-The following example shows a first sequence that should be aligned in the canonical direction, using the end-to-end alignment, and with weight 1. The second sequence should be aligned in the reversed direction, using the ends free mode, and has an associated weight of 2:
+The following example shows a first sequence that should be aligned in the canonical direction, using the end-to-end alignment, and with weight 1. The second sequence should be aligned in the reversed direction, using the ends free mode, and has an associated weight of 2. Both sequences are aligned without using any heuristic.
 ```
-> 0 0 1
+> 0 0 1 0 0
 ACCT
-> 1 1 2
+> 1 1 2 0 0
 TCCAT
 ```
 
@@ -128,10 +128,6 @@ Usage: pericles [OPTIONS]
                                                         Only tractable for small graphs
                    -f, --output <file>         Output file                                             [Required]
                    -s, --sequences <file>      Dataset file                                            [Required]
-
-                  Heuristics:\n"
-                   -d  --density_heuristic     Activate the drop heuristic based on advancement density.
-                   -l  --lag_pruning           Activate the pruning of diagonals lagging behind in the alignment.
 ```
 
 An example of the execution of *pericles* is shown in the following piece of code
@@ -148,10 +144,7 @@ You first have to create a Heuristics object:
 theseus::Heuristics heuristics;
 ```
 
-Moreover, the pericles tool provided in this alignment library allow you to activate these two heuristics from the command line, by adding the **-d** and **-l** flags. In this case, if the heuristics are actuvated, they will remain active for all alignment problems in the initialized aligner.
-```
-./pericles -m 0 -x 2 -o 3 -e 1 -t 0 -f output_file.out -s sequences.fasta -d -l
-```
+Moreover, the pericles tool provided in this alignment library allows you to activate these two heuristics on each of the provided sequences. The indications on the activation or not of the two available heuristics are provided in the input file, as described in Section 3.1.
 
 
 ## <a name="theseus_bugs"></a> 6. REPORTING BUGS AND FEATURE REQUEST
