@@ -55,9 +55,9 @@ theseus::Heuristics heuristics(use_lag_pruning, use_density_drop);
 theseus::TheseusMSA aligner(penalties, heuristics, initial_sequence, weight, is_ends_free);
 ```
 
-Once this is done, we can start adding sequences to our POA graph using the align functionality, that returns an Alignment object with CIGAR, path, and score information. Each time that you call the aligner, you have to provide three parameters: 1) The sequence to be aligned to the poa graph, 2) A boolean variable indicating whether you want the alignment to go forward (source to sink) or reverse (sink to source), and 3) A boolean variable indicating whether you want the alignment to be end to end or having a free end at the "end" of the graph:
+Once this is done, we can start adding sequences to our POA graph using the align functionality, that returns an Alignment object with CIGAR, path, and score information. Each time that you call the aligner, you have to provide five parameters: 1) The sequence to be aligned to the poa graph, 2) A boolean variable indicating whether you want the alignment to go forward (source to sink) or reverse (sink to source), 3) A boolean variable indicating whether you want the alignment to be end to end or having a free end at the "end" of the graph, 4) A boolean variable indicating whether the density drop heuristic is active for this alignment, and 5) A boolean variable indicating if the lag pruning heuristic is active for the current alignment:
 ```
-theseus::Alignment alignment_object = aligner.align(sequence, weight, align_reverse, is_ends_free);
+theseus::Alignment alignment_object = aligner.align(sequence, weight, align_reverse, is_ends_free, density_drop_active, lag_pruning_active);
 ```
 
 Each time a new sequence is added to the POA graph, the graph is updated with the newly found variation (all the insertions, deletions and mismatches of the resulting alignment object).
@@ -143,12 +143,12 @@ An example of the execution of *pericles* is shown in the following piece of cod
 ## <a name="theseus_heuristics"></a> 4. HEURISTICS
 Theseus library implements some heuristic approaches that accelerate alignment at the expense of a limited loss in accuracy. In particular, Theseus implements 1) a **pruning heuristic** that discards diagonals that have fallen behind in the alignment, as long as the alignment has shown a significant advancement in the last scores, and 2) a **drop heuristic** that drops alignment when the advancement density (number of offsets advanced in the last scores) is very low.
 
-You can activate these heuristics by initializing the Heuristics object with two separate boolean flags:
+You first have to create a Heuristics object:
 ```
-theseus::Heuristics heuristics(use_lag_pruning, use_density_drop);
+theseus::Heuristics heuristics;
 ```
 
-Moreover, the three minimal tools provided in this alignment library allow you to activate these two heuristics from the command line, by adding the **-d** and **-l** flags:
+Moreover, the pericles tool provided in this alignment library allow you to activate these two heuristics from the command line, by adding the **-d** and **-l** flags. In this case, if the heuristics are actuvated, they will remain active for all alignment problems in the initialized aligner.
 ```
 ./pericles -m 0 -x 2 -o 3 -e 1 -t 0 -f output_file.out -s sequences.fasta -d -l
 ```

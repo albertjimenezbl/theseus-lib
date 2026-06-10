@@ -81,7 +81,9 @@ namespace theseus
         Alignment align(std::string_view seq,
                         int  weight = 1,
                         bool reverse_alignment = false,
-                        bool is_ends_free = false);
+                        bool is_ends_free = false,
+                        bool density_drop_active = false,
+                        bool lag_pruning_active = false);
 
         /**
          * @brief Print the current POA graph as a GFA file.

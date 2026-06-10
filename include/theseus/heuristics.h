@@ -45,24 +45,15 @@ namespace theseus {
          * @brief Construct a new Heuristics object with parameters
          *
          */
-        Heuristics(
-            bool lag_pruning,
-            bool density_drop
-        ) {
-            // Used heuristics
-            // if (lag_pruning)  std::cout << "Pruning active" << std::endl;
-            // if (density_drop) std::cout << "Drop active" << std::endl;
-            _lag_pruning         = lag_pruning ;
-            _density_drop        = density_drop;
-            // Max offset default
-            _max_offset          = 0;
-        }
+        Heuristics() {}
 
 
         // INITIALIZER //
-        void new_alignment(int gape, int seq_len) {
+        void new_alignment(int gape, int seq_len, bool density_drop_active, bool lag_pruning_active) {
             // General
             _max_offset = 0;
+            _lag_pruning  = lag_pruning_active;
+            _density_drop = density_drop_active;
 
             // Drop heuristic parameters (depending on sequence length and penalties)
             // Consider for now that you want to capture gaps of length max(min(500, seq_len/20), 10)
@@ -85,7 +76,6 @@ namespace theseus {
         // ------------------------ HEURISTICS ---------------------------------
 
         // LOCAL heuristics: Heuristics that are checked on all wavefront cells
-        // TODO: How do the two local heuristics coexist?
         bool check_local_heuristics(int &curr_offset) {
             // Update the max value
             _max_offset = (curr_offset > _max_offset)? curr_offset : _max_offset;

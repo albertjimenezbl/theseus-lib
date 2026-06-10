@@ -77,7 +77,9 @@ public:
     Alignment align(std::string_view seq,
                     int weight = 1,
                     bool reverse_alignment = false,
-                    bool is_ends_free = false);
+                    bool is_ends_free = false,
+                    bool density_drop_active = false,
+                    bool lag_pruning_active = false);
 
     /**
      * @brief Output the current graph in GFA format.
@@ -134,7 +136,9 @@ private:
      *
      */
     void new_alignment(SequenceView seq,
-                       bool reverse_alignment);
+                       bool reverse_alignment,
+                       bool density_drop_active,
+                       bool lag_pruning_active);
 
     /**
      * @brief Process a given vertex at a given _score. This means performing

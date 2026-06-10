@@ -67,7 +67,9 @@ bool TheseusAlignerImpl::has_out_nodes(NodeId id) {
 }
 
 void TheseusAlignerImpl::new_alignment(SequenceView seq,
-                                       bool reverse_alignment) {
+                                       bool reverse_alignment,
+                                       bool density_drop_active,
+                                       bool lag_pruning_active) {
     _scope->new_alignment();
     _beyond_scope->new_alignment();
     _vertices_data->new_alignment();
@@ -91,7 +93,7 @@ void TheseusAlignerImpl::new_alignment(SequenceView seq,
     // Set initial alignment status
     _alignment.theseus_status = THESEUS_STATUS_OK;
     // Set heuristics
-    _heuristics.new_alignment(_internal_penalties.gape(), _seq.size());
+    _heuristics.new_alignment(_internal_penalties.gape(), _seq.size(), density_drop_active, lag_pruning_active);
     // TODO: Allow for different initial conditions. Now only global alignment.
     Cell init_condition;
     init_condition.offset = 0;
@@ -147,7 +149,9 @@ Alignment TheseusAlignerImpl::align(
     std::string_view seq,
     int  weight,
     bool reverse_alignment,
-    bool is_ends_free
+    bool is_ends_free,
+    bool density_drop_active,
+    bool lag_pruning_active
   )
 {
   if (!reverse_alignment) {
@@ -162,7 +166,7 @@ Alignment TheseusAlignerImpl::align(
   }
   _ends_free = is_ends_free;
   // Initialize data for the new alignment
-  new_alignment(Graph::SequenceView(seq, reverse_alignment), reverse_alignment);
+  new_alignment(Graph::SequenceView(seq, reverse_alignment), reverse_alignment, density_drop_active, lag_pruning_active);
   _score = 0;
   // _graph.print_code_graphviz();
   // Main alignment loop

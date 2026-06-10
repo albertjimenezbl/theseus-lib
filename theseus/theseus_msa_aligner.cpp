@@ -75,7 +75,10 @@ Alignment TheseusMSA::align(
     std::string_view seq,
     int weight,
     bool reverse_alignment,
-    bool is_ends_free) {
+    bool is_ends_free,
+    bool density_drop_active,
+    bool lag_pruning_active
+) {
 
     // Error out if you are adding a backbone sequence after partial sequences
     if (!still_end_to_end && !is_ends_free) {
@@ -83,7 +86,7 @@ Alignment TheseusMSA::align(
     }
     // Update the still_end_to_end value
     still_end_to_end = !is_ends_free;
-    return msa_aligner_impl_->align(seq, weight, reverse_alignment, is_ends_free);
+    return msa_aligner_impl_->align(seq, weight, reverse_alignment, is_ends_free, density_drop_active, lag_pruning_active);
 }
 
 /**
