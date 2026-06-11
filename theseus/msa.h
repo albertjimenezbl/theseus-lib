@@ -493,7 +493,7 @@ namespace theseus {
             // w1 and w2 are aligned nodes to v1 and v2, respectively.
             int num_original_edges = augmented_poa_graph._poa_edges.size();
             for (int l = 0; l < num_original_edges; ++l) {
-                POAEdge &edge = augmented_poa_graph._poa_edges[l];
+                POAEdge edge = augmented_poa_graph._poa_edges[l];
                 // For each edge, add an extra edge for each aligned pair
                 POAVertex &source_vertex      = augmented_poa_graph._poa_vertices[edge.source];
                 POAVertex &destination_vertex = augmented_poa_graph._poa_vertices[edge.destination];
@@ -524,8 +524,8 @@ namespace theseus {
                     augmented_poa_graph._poa_vertices[aligned_destination].in_edges.push_back(augmented_poa_graph._poa_edges.size() - 1);
                 }
                 // Add aligned source to destination edges
-                for (size_t i = 0; i < source_vertex.associated_vtxs.size(); ++i) {
-                    int aligned_source = source_vertex.associated_vtxs[i];
+                for (size_t j = 0; j < source_vertex.associated_vtxs.size(); ++j) {
+                    int aligned_source = source_vertex.associated_vtxs[j];
                     // Create a new edge between the aligned source and the destination node
                     POAEdge new_edge;
                     new_edge.source = aligned_source;
