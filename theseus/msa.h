@@ -34,6 +34,7 @@
 #include <string>
 #include <stack>
 #include <functional>
+#include <utility>
 
 #include "theseus/graph.h"
 #include "theseus/alignment.h"
@@ -541,22 +542,48 @@ namespace theseus {
             std::vector<bool> visited(augmented_poa_graph._poa_vertices.size(), false);
             std::stack<int> topo_stack;
 
-            // Recursive dfs
-            std::function<void(int)> dfs = [&](int v) {
-                visited[v] = true;
-                for (int edge_idx : augmented_poa_graph._poa_vertices[v].out_edges) {
-                    int next_v = augmented_poa_graph._poa_edges[edge_idx].destination;
-                    if (!visited[next_v]) {
-                        dfs(next_v);
-                    }
-                }
-                topo_stack.push(v);
-            };
+            // Stacked dfs to perform the topological sort. It is important to
+            // avoid a recursive dfs, as it causes stack overflow for large graphs.
+            // Perform DFS for all vertices to handle disconnected components
+            for (size_t start_v = 0; start_v < augmented_poa_graph._poa_vertices.size(); ++start_v) {
+                if (!visited[start_v]) {
+                    // Explicit stack instead of recursion. The stack stores
+                    // pairs: {vertex_id, neighbors_processed_flag}
+                    std::stack<std::pair<int, bool>> st;
+                    st.push({start_v, false});
 
-            // Perform DFS for all vertices starting in all vertices (to ensure we cover all disconnected components)
-            for (size_t v = 0; v < augmented_poa_graph._poa_vertices.size(); ++v) {
-                if (!visited[v]) {
-                    dfs(v);
+                    // Traversal from start_v
+                    while (!st.empty()) {
+                        auto [v, neighbors_processed] = st.top();
+                        st.pop();
+
+                        if (!neighbors_processed) {
+                            // If it was already visited by another path while waiting in the stack, skip
+                            if (visited[v]) {
+                                continue;
+                            }
+
+                            // Mark as visited now that we are actively processing it
+                            visited[v] = true;
+
+                            // Push it back onto the stack with the flag set to 'true'.
+                            // When we pop it again, we will know that all of its neighbors,
+                            // located higher on the stack, have been processed and popped.
+                            st.push({v, true});
+
+                            // Push all unvisited neighbors onto the intermediate stack "st"
+                            for (int edge_idx : augmented_poa_graph._poa_vertices[v].out_edges) {
+                                int next_v = augmented_poa_graph._poa_edges[edge_idx].destination;
+                                if (!visited[next_v]) {
+                                    st.push({next_v, false});
+                                }
+                            }
+                        } else {
+                            // Popping a node whose nodes have been processed means
+                            // that we can add it to the topological order stack.
+                            topo_stack.push(v);
+                        }
+                    }
                 }
             }
 
