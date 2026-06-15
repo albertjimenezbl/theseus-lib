@@ -546,12 +546,12 @@ namespace theseus {
             // avoid a recursive dfs, as it causes stack overflow for large graphs.
             // Perform DFS for all vertices to handle disconnected components
             for (size_t start_v = 0; start_v < augmented_poa_graph._poa_vertices.size(); ++start_v) {
+                // Explicit stack instead of recursion. The stack stores
+                // pairs: {vertex_id, neighbors_processed_flag}
+                std::stack<std::pair<int, bool>> st;
                 if (!visited[start_v]) {
-                    // Explicit stack instead of recursion. The stack stores
-                    // pairs: {vertex_id, neighbors_processed_flag}
-                    std::stack<std::pair<int, bool>> st;
+                    // Push the intial node to start current DFS
                     st.push({start_v, false});
-
                     // Traversal from start_v
                     while (!st.empty()) {
                         auto [v, neighbors_processed] = st.top();
