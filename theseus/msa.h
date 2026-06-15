@@ -545,10 +545,10 @@ namespace theseus {
             // Stacked dfs to perform the topological sort. It is important to
             // avoid a recursive dfs, as it causes stack overflow for large graphs.
             // Perform DFS for all vertices to handle disconnected components
+            // Explicit stack instead of recursion. The stack stores
+            // pairs: {vertex_id, neighbors_processed_flag}
+            std::stack<std::pair<int, bool>> st;
             for (size_t start_v = 0; start_v < augmented_poa_graph._poa_vertices.size(); ++start_v) {
-                // Explicit stack instead of recursion. The stack stores
-                // pairs: {vertex_id, neighbors_processed_flag}
-                std::stack<std::pair<int, bool>> st;
                 if (!visited[start_v]) {
                     // Push the intial node to start current DFS
                     st.push({start_v, false});
