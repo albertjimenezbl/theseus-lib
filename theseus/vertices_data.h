@@ -35,7 +35,7 @@
 
 #include "cell.h"
 #include "theseus/graph.h"
-#include "theseus/penalties.h"
+#include "internal_penalties.h"
 
 
 namespace theseus {
@@ -100,7 +100,7 @@ public:
      * @param nscores   Number of scores of the scope.
      * @param nexpected_vertices    Number of expected vertices.
      */
-    VerticesData(const Penalties &penalties, int nscores, int nexpected_vertices) :
+    VerticesData(const InternalPenalties &penalties, int nscores, int nexpected_vertices) :
         _nscores(nscores), _penalties(penalties) {
         _active_vertices.reserve(nexpected_vertices);
         _vertex_to_idx.reserve(nexpected_vertices);
@@ -449,7 +449,7 @@ public:
     }
 
 private:
-    const Penalties &_penalties;
+    const InternalPenalties &_penalties;
 
     std::vector<VertexData> _active_vertices;
 

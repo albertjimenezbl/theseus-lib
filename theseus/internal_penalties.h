@@ -49,6 +49,7 @@ public:
             _mismatch = 2*penalties.mism() - 2*penalties.match();
             _gapo = 2*penalties.gapo();
             _gape = 2*penalties.gape() - penalties.match();
+            std::cout << _match  << " " << _mismatch << " " << _gapo << " " << _gape << std::endl;
         }
         else {
             _match = penalties.match();

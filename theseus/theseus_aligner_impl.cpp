@@ -47,11 +47,11 @@ TheseusAlignerImpl::TheseusAlignerImpl(const Penalties &penalties,
     // Always MSA for pericles
     _poa_graph = std::make_unique<POAGraph>();
     _poa_graph->create_initial_graph(_graph, initial_weight);
-    _internal_penalties = InternalPenalties(penalties);
+    // _internal_penalties = InternalPenalties(penalties);
     _scope = std::make_unique<Scope>(n_scores);
     _beyond_scope = std::make_unique<BeyondScope>();
     constexpr int expected_nvertices = std::max(1024, 0); // TODO: Set the expected number of vertices
-    _vertices_data = std::make_unique<VerticesData>(penalties, n_scores, expected_nvertices);
+    _vertices_data = std::make_unique<VerticesData>(_internal_penalties, n_scores, expected_nvertices);
     _scratchpad = std::make_unique<ScratchPad>(-1024, 1024);
 }
 
