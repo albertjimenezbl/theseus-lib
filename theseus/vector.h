@@ -323,6 +323,26 @@ public:
 
     using realloc_policy = std::function<size_type(size_type, size_type)>;
 
+    private:
+    /**
+     * Check if the vector should avoid calling the default constructor and
+     * destructor when resizing the vector. I.e., check if the elements stored
+     * in the vector are both standard layout and trivial.
+     */
+    static constexpr bool avoid_init = AvoidInitIfPossible &&
+                                    std::is_standard_layout_v<T> &&
+                                    std::is_trivial_v<T>;
+
+    static constexpr bool noexcept_move_assign =
+        alloc_traits::propagate_on_container_move_assignment::value ||
+        alloc_traits::is_always_equal::value;
+
+    static constexpr bool noexcept_swap =
+        alloc_traits::propagate_on_container_swap::value ||
+        alloc_traits::is_always_equal::value;
+
+    public:
+
     /**
      * Create an empty vector. Both the size and capacity are 0 and there is no
      * reallocation policy. The default allocator is used.
@@ -931,22 +951,6 @@ public:
         x.swap(y);
     }
 private:
-    /**
-     * Check if the vector should avoid calling the default constructor and
-     * destructor when resizing the vector. I.e., check if the elements stored
-     * in the vector are both standard layout and trivial.
-     */
-    static constexpr bool avoid_init = AvoidInitIfPossible &&
-                                       std::is_standard_layout_v<T> &&
-                                       std::is_trivial_v<T>;
-
-    static constexpr bool noexcept_move_assign =
-        alloc_traits::propagate_on_container_move_assignment::value ||
-        alloc_traits::is_always_equal::value;
-    static constexpr bool noexcept_swap =
-        alloc_traits::propagate_on_container_swap::value ||
-        alloc_traits::is_always_equal::value;
-
     /**
      * Check if the allocator defines the boolean
      * allocator_implements_reallocate. If the allocator defines it and it is
