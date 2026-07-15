@@ -131,6 +131,13 @@ public:
             std::unordered_map<NodeId, std::string> &node_names);
 
 private:
+    // Structs
+    struct ExtendElement {
+        NodeId       curr_node_id;
+        Cell::pos_t  prev_pos;
+        Cell::Matrix from_matrix;
+    };
+
     /**
      * @brief Initialize the data for a new alignment.
      *
@@ -255,13 +262,11 @@ private:
      * discovered vertices and store the jump in the neighbours.
      *
      * @param curr_node
-     * @param prev_cell
      * @param prev_pos
      * @param from_matrix
      */
     void store_M_jump(
         NodeView curr_node,
-        Cell &prev_cell,
         Cell::pos_t prev_pos,
         Cell::Matrix from_matrix);
 
@@ -270,13 +275,11 @@ private:
      * discovered vertices and store the jump in the neighbours.
      *
      * @param curr_node
-     * @param prev_cell
      * @param prev_pos
      * @param from_matrix
      */
     void store_I_jump(
         NodeView curr_node,
-        Cell &prev_cell,
         Cell::pos_t prev_pos,
         Cell::Matrix from_matrix);
 
@@ -312,22 +315,24 @@ private:
      * @param curr_data
      */
     void check_end_condition(
-        Cell curr_data);
+        Cell *curr_data);
+
+
+    // Get a pointer to the cell at matrix "matrix" and position "pos" in the wavefront
+    Cell* get_cell(
+        Cell::Matrix matrix,
+        Cell::pos_t pos);
 
     /**
-     * @brief Exyend a given diagonal for a given vertex and perform the necessary
+     * @brief Extend a given diagonal for a given vertex and perform the necessary
      * jumps.
      *
-     * @param curr_node
-     * @param curr_cell
-     * @param prev_cell
+     * @param curr_node_id
      * @param prev_pos
      * @param prev_matrix
      */
     void extend_diagonal(
         NodeId curr_node_id,
-        Cell &curr_cell,
-        Cell &prev_cell,
         Cell::pos_t prev_pos,
         Cell::Matrix from_matrix);
 

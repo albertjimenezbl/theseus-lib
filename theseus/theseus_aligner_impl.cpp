@@ -125,7 +125,7 @@ void TheseusAlignerImpl::process_vertex(NodeId curr_node_id) {
   int v_pos = _vertices_data->get_id(curr_node_id);
   Scope::range cells_range = _scope->m_pos(_score)[v_pos];
   for (Cell::pos_t idx = cells_range.start; idx < cells_range.end; ++idx) {
-    extend_diagonal(curr_node_id, _beyond_scope->m_wf()[idx], _beyond_scope->m_wf()[idx], idx, Cell::Matrix::M);
+    extend_diagonal(curr_node_id, idx, Cell::Matrix::M);
   }
 }
 
@@ -174,7 +174,7 @@ Alignment TheseusAlignerImpl::align(
     // Initial extend
     if (_score == 0) {
       NodeView start_node = get_node(_start_node);
-      extend_diagonal(_start_node, _beyond_scope->m_jumps_wf()[0], _beyond_scope->m_jumps_wf()[0], 0, Cell::Matrix::MJumps);
+      extend_diagonal(_start_node, 0, Cell::Matrix::MJumps);
     }
     // Next wave + extend
     compute_new_wave();
@@ -450,20 +450,21 @@ void TheseusAlignerImpl::next_M(int upper_bound,
 
 // Store the jump in neighbours
 void TheseusAlignerImpl::store_M_jump(NodeView curr_node,
-                                      Cell &prev_cell,
                                       Cell::pos_t prev_pos,
                                       Cell::Matrix from_matrix) {
+  // Get pointer to previous cell
+  Cell* prev_cell = get_cell(from_matrix, prev_pos);
   // Invalidate the jumping diagonal
-  _vertices_data->invalidate_m_jump(_vertices_data->get_id(prev_cell.vertex_id), prev_cell.diag);
+  _vertices_data->invalidate_m_jump(_vertices_data->get_id(prev_cell->vertex_id), prev_cell->diag);
   int pos_score = _vertices_data->get_pos(_score);
-  int new_diag  = -prev_cell.offset;
-  Cell new_cell = prev_cell;
+  int new_diag  = -prev_cell->offset;
+  Cell new_cell = *prev_cell;
   new_cell.from_matrix = from_matrix;
-  new_cell.prev_pos = prev_pos;
+  new_cell.prev_pos    = prev_pos;
+  new_cell.diag        = new_diag;
   // For each neighbour, store the jump and metadata
   for (auto out_node_id : curr_node.out_nodes) {
     new_cell.vertex_id = out_node_id;
-    new_cell.diag = new_diag;
     NodeView out_node = get_node(out_node_id);
     _vertices_data->activate_vertex(new_cell.vertex_id);
     // Store jump and metadata
@@ -473,7 +474,6 @@ void TheseusAlignerImpl::store_M_jump(NodeView curr_node,
       int pos_new_cell = _beyond_scope->m_jumps_wf().size();
       _beyond_scope->m_jumps_wf().push_back(new_cell);
       _vertices_data->get_vertex_data(new_cell.vertex_id)._m_jumps_positions[pos_score].push_back(pos_new_cell);
-      extend_diagonal(out_node_id, _beyond_scope->m_jumps_wf()[pos_new_cell], _beyond_scope->m_jumps_wf()[pos_new_cell], pos_new_cell, Cell::Matrix::MJumps);
     }
   }
 }
@@ -482,21 +482,22 @@ void TheseusAlignerImpl::store_M_jump(NodeView curr_node,
 // Store the jump in neighbours
 void TheseusAlignerImpl::store_I_jump(
     NodeView curr_node,
-    Cell& prev_cell,
     Cell::pos_t prev_pos,
     Cell::Matrix from_matrix)
 {
+  // Get pointer to previous cell
+  Cell *prev_cell = get_cell(from_matrix, prev_pos);
   // Invalidate the jumping diagonal
-  _vertices_data->invalidate_i_jump(_vertices_data->get_id(prev_cell.vertex_id), prev_cell.diag);
+  _vertices_data->invalidate_i_jump(_vertices_data->get_id(prev_cell->vertex_id), prev_cell->diag);
   int pos_score = _vertices_data->get_pos(_score);
-  int new_diag = -prev_cell.offset;
-  Cell new_cell = prev_cell;
+  int new_diag = -prev_cell->offset;
+  Cell new_cell = *prev_cell;
   new_cell.from_matrix = from_matrix;
-  new_cell.prev_pos = prev_pos;
+  new_cell.prev_pos    = prev_pos;
+  new_cell.diag        = new_diag;
   // For each neighbour, store the jump and metadata
   for (auto out_node_id : curr_node.out_nodes) {
     new_cell.vertex_id = out_node_id;
-    new_cell.diag = new_diag;
     _vertices_data->activate_vertex(new_cell.vertex_id);
     bool valid_diag = _vertices_data->valid_diagonal<Cell::Matrix::I>(new_cell.vertex_id, new_cell.diag);
     // Extend only if it has not yet been visited
@@ -506,7 +507,7 @@ void TheseusAlignerImpl::store_I_jump(
       _vertices_data->get_vertex_data(new_cell.vertex_id)._i_jumps_positions[pos_score].push_back(pos_new_cell);
       // If the destination vertex is empty, jump again
       if (curr_node.sequence.empty()) {
-        store_I_jump(curr_node, _beyond_scope->i_jumps_wf()[pos_new_cell], prev_pos, Cell::Matrix::IJumps);
+        store_I_jump(curr_node, prev_pos, Cell::Matrix::IJumps);
       }
     }
   }
@@ -522,16 +523,16 @@ void TheseusAlignerImpl::check_and_store_jumps(
   Cell::pos_t len = cell_range.end - cell_range.start, n = curr_node.sequence.size(), prev_pos;
   Cell::idx2d_t diag, offset, curr_j;
   Cell::Matrix from_matrix;
-  // Check all difaonals in the current wavefront
+  // Check all diagonals in the current wavefront
   for (int l = 0; l < len; ++l) {
-    diag = curr_wavefront[cell_range.start + l].diag;
+    diag   = curr_wavefront[cell_range.start + l].diag;
     offset = curr_wavefront[cell_range.start + l].offset;
     curr_j = diag + offset;
     if (curr_j == n && offset <= (int)_seq.size()) {
       from_matrix = curr_wavefront[cell_range.start + l].from_matrix;
-      prev_pos = curr_wavefront[cell_range.start + l].prev_pos;
-      store_M_jump(curr_node, curr_wavefront[cell_range.start + l], prev_pos, from_matrix);
-      store_I_jump(curr_node, curr_wavefront[cell_range.start + l], prev_pos, from_matrix);
+      prev_pos    = curr_wavefront[cell_range.start + l].prev_pos;
+      store_M_jump(curr_node, prev_pos, from_matrix);
+      store_I_jump(curr_node, prev_pos, from_matrix);
     }
   }
 }
@@ -556,42 +557,95 @@ void TheseusAlignerImpl::LCP(
 
 // TODO: Implement different end conditions as Global, Semi-Global...
 void TheseusAlignerImpl::check_end_condition(
-    Cell curr_data)
+    Cell *curr_data)
 {
   // Ends free
   if (_ends_free) {
-    if (curr_data.offset == (int)_seq.size() || curr_data.vertex_id == _end_node) {
+    if (curr_data->offset == (int)_seq.size() || curr_data->vertex_id == _end_node) {
     _alignment.theseus_status = THESEUS_STATUS_ALG_COMPLETED;
-    _start_pos = curr_data;
+    _start_pos = *curr_data;
     }
   }
   // End to end
   else {
-    if (curr_data.offset == (int)_seq.size() && curr_data.vertex_id == _end_node) {
+    if (curr_data->offset == (int)_seq.size() && curr_data->vertex_id == _end_node) {
       _alignment.theseus_status = THESEUS_STATUS_ALG_COMPLETED;
-      _start_pos = curr_data;
+      _start_pos = *curr_data;
     }
   }
+}
+
+// Get a pointer to the cell at matrix "matrix" and position "pos" in the wavefront
+Cell* TheseusAlignerImpl::get_cell(
+    Cell::Matrix matrix,
+    Cell::pos_t pos) {
+
+    // Just used for M and M_jumps, but can be extended to others if needed
+    if (matrix == Cell::Matrix::M) {
+        return &_beyond_scope->m_wf()[pos];
+    } else if (matrix == Cell::Matrix::MJumps) {
+        return &_beyond_scope->m_jumps_wf()[pos];
+    } else if (matrix == Cell::Matrix::I) {
+        return &_scope->i_wf(_score)[pos];
+    } else if (matrix == Cell::Matrix::IJumps) {
+        return &_beyond_scope->i_jumps_wf()[pos];
+    } else if (matrix == Cell::Matrix::D) {
+        return &_scope->d_wf(_score)[pos];
+    } else {
+        throw std::invalid_argument("Invalid matrix type");
+    }
 }
 
 
 // Extend a particular diagonal
 void TheseusAlignerImpl::extend_diagonal(
-    NodeId curr_node_id,
-    Cell &curr_cell,
-    Cell &prev_cell,
-    Cell::pos_t prev_pos,
+    NodeId       curr_node_id,
+    Cell::pos_t  prev_pos,
     Cell::Matrix from_matrix)
 {
-  // Longest Common prefix
-  NodeView curr_node = get_node(curr_node_id);
-  int j = curr_cell.diag + curr_cell.offset;
-  LCP(curr_node, curr_cell.offset, j);
-  // End condition
-  check_end_condition(curr_cell);
-  // _graph.print_graph();
-  if (j == (int)curr_node.sequence.size() && curr_cell.offset <= (int)_seq.size() && has_out_nodes(curr_node_id)) {
-    store_M_jump(curr_node, prev_cell, prev_pos, from_matrix); // Store the jump in neighbours
+  // Work with an explicit instead of an implicit stack to avoid stack overflows
+  std::stack<ExtendElement> extend_stack;
+  // Push the first element to the stack
+  extend_stack.push({curr_node_id, prev_pos, from_matrix});
+  // Extension dynamics
+  while (!extend_stack.empty()) {
+    // Pop the current element from the stack
+    ExtendElement curr_element = extend_stack.top();
+    extend_stack.pop();
+    // Process the current element
+    NodeView curr_node = get_node(curr_element.curr_node_id);
+    Cell    *curr_cell = get_cell(curr_element.from_matrix, curr_element.prev_pos);
+    int              j = curr_cell->diag + curr_cell->offset;
+    // Longest Common Prefix
+    LCP(curr_node, curr_cell->offset, j);
+    // End condition
+    check_end_condition(curr_cell);
+    // Jump in case of reaching the end of the vertex and having out nodes
+    if (j == (int)curr_node.sequence.size() && curr_cell->offset <= (int)_seq.size() && has_out_nodes(curr_element.curr_node_id)) {
+      // Invalidate the jumping diagonal
+      _vertices_data->invalidate_m_jump(_vertices_data->get_id(curr_cell->vertex_id), curr_cell->diag);
+      int  pos_score       = _vertices_data->get_pos(_score);
+      int  new_diag        = -curr_cell->offset;
+      Cell new_cell        = *curr_cell;
+      new_cell.from_matrix = curr_element.from_matrix;
+      new_cell.prev_pos    = curr_element.prev_pos;
+      new_cell.diag        = new_diag;
+      // For each neighbour, store the jump and metadata
+      for (auto out_node_id : curr_node.out_nodes) {
+        new_cell.vertex_id = out_node_id;
+        _vertices_data->activate_vertex(new_cell.vertex_id);
+        // Store jump and metadata
+        bool valid_diag = _vertices_data->valid_diagonal<Cell::Matrix::M>(new_cell.vertex_id, new_cell.diag);
+        // Extend only if it has not yet been visited
+        if (valid_diag) {
+          int pos_new_cell = _beyond_scope->m_jumps_wf().size();
+          _beyond_scope->m_jumps_wf().push_back(new_cell);
+          _vertices_data->get_vertex_data(new_cell.vertex_id)._m_jumps_positions[pos_score].push_back(pos_new_cell);
+          // Push the new cell to the stack for later extension
+          extend_stack.push({out_node_id, pos_new_cell, Cell::Matrix::MJumps});
+        }
+      }
+    }
   }
 }
 
